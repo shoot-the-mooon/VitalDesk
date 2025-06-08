@@ -108,6 +108,8 @@ dotnet run --project src/VitalDesk.App
 dotnet publish src/VitalDesk.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=true -p:TrimMode=link -o ./publish/windows-opt
 ```
 
+> **注意**: アプリケーションはトリミングを有効にして公開されます。トリミング実行ファイルでDapperがデータを正しくマッピングできるよう、PatientとVitalモデルクラスは`[DynamicallyAccessedMembers]`属性を使用してパブリックプロパティを保護しています。
+
 ### テスト実行
 ```bash
 dotnet test

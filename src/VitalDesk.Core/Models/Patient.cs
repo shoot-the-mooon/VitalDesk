@@ -1,5 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace VitalDesk.Core.Models;
 
+// Ensure public properties remain available for reflection when the application
+// is published with trimming (required by Dapper).
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 public class Patient
 {
     public int Id { get; set; }

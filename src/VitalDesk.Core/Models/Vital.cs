@@ -1,5 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace VitalDesk.Core.Models;
 
+// Preserve public properties for reflection when trimming the application.
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 public class Vital
 {
     public int Id { get; set; }

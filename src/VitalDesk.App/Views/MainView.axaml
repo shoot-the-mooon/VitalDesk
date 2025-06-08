@@ -1,0 +1,132 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:vm="using:VitalDesk.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="VitalDesk.App.Views.MainView"
+             x:DataType="vm:MainViewModel">
+
+  <Design.DataContext>
+    <vm:MainViewModel/>
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto,*">
+    
+    <!-- Header -->
+    <Border Grid.Row="0" Background="{DynamicResource SystemAccentColor}" Padding="16">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Grid.Column="0" 
+                   Text="VitalDesk - Patient Management" 
+                   FontSize="20" 
+                   FontWeight="Bold"
+                   Foreground="White"
+                   VerticalAlignment="Center"/>
+        
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+          <TextBox Text="{Binding SearchText}" 
+                   Watermark="Search patients..."
+                   Width="200"
+                   VerticalAlignment="Center"/>
+          
+          <Button Content="Add Patient" 
+                  Command="{Binding AddPatientCommand}"
+                  Classes="accent"
+                  VerticalAlignment="Center"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Content -->
+    <Grid Grid.Row="1" Margin="16">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <!-- Patients DataGrid -->
+      <DataGrid Grid.Row="0"
+                ItemsSource="{Binding Patients}"
+                SelectedItem="{Binding SelectedPatient}"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                GridLinesVisibility="Horizontal"
+                HeadersVisibility="Column">
+        
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Code" 
+                              Binding="{Binding Code}" 
+                              Width="100"/>
+          
+          <DataGridTextColumn Header="Name" 
+                              Binding="{Binding Name}" 
+                              Width="200"/>
+          
+          <DataGridTextColumn Header="Age" 
+                              Binding="{Binding Age}" 
+                              Width="80"/>
+          
+          <DataGridTextColumn Header="Admission" 
+                              Binding="{Binding Admission, StringFormat=yyyy-MM-dd}" 
+                              Width="120"/>
+          
+          <DataGridTemplateColumn Header="Actions" Width="200">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Content="View" 
+                          Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).ViewPatientDetailsCommand}"
+                          CommandParameter="{Binding}"
+                          Classes="accent"
+                          FontSize="12"
+                          Padding="8,4"/>
+                  
+                  <Button Content="Edit" 
+                          Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).EditPatientCommand}"
+                          CommandParameter="{Binding}"
+                          FontSize="12"
+                          Padding="8,4"/>
+                  
+                  <Button Content="Delete" 
+                          Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).DeletePatientCommand}"
+                          CommandParameter="{Binding}"
+                          Classes="danger"
+                          FontSize="12"
+                          Padding="8,4"/>
+                </StackPanel>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <!-- Loading indicator -->
+      <Border Grid.Row="0" 
+              Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+              Opacity="0.8"
+              IsVisible="{Binding IsLoading}">
+        <StackPanel HorizontalAlignment="Center" 
+                    VerticalAlignment="Center"
+                    Spacing="16">
+          <ui:ProgressRing IsActive="{Binding IsLoading}" 
+                           Width="48" 
+                           Height="48"/>
+          <TextBlock Text="Loading patients..." 
+                     HorizontalAlignment="Center"
+                     FontSize="16"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Status bar -->
+      <Border Grid.Row="1" 
+              Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+              Padding="8"
+              Margin="0,8,0,0">
+        <TextBlock Text="{Binding Patients.Count, StringFormat='Total patients: {0}'}"
+                   FontSize="12"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl> 

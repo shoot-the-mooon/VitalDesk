@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitalDesk.App", "VitalDesk.App\VitalDesk.App.csproj", "{B2C86E7E-2FBF-4471-964A-3C75DAFD1E62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitalDesk.Core", "VitalDesk.Core\VitalDesk.Core.csproj", "{80F55237-6069-4E2C-97E1-4B48CBE400D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VitalDesk.Tests", "VitalDesk.Tests\VitalDesk.Tests.csproj", "{99EA6813-E8FE-4A2A-9FC9-1F9BB56BABCA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B2C86E7E-2FBF-4471-964A-3C75DAFD1E62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2C86E7E-2FBF-4471-964A-3C75DAFD1E62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2C86E7E-2FBF-4471-964A-3C75DAFD1E62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2C86E7E-2FBF-4471-964A-3C75DAFD1E62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80F55237-6069-4E2C-97E1-4B48CBE400D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80F55237-6069-4E2C-97E1-4B48CBE400D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80F55237-6069-4E2C-97E1-4B48CBE400D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80F55237-6069-4E2C-97E1-4B48CBE400D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99EA6813-E8FE-4A2A-9FC9-1F9BB56BABCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99EA6813-E8FE-4A2A-9FC9-1F9BB56BABCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99EA6813-E8FE-4A2A-9FC9-1F9BB56BABCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99EA6813-E8FE-4A2A-9FC9-1F9BB56BABCA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

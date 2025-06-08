@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore src/VitalDesk.sln
+    
+    - name: Build
+      run: dotnet build src/VitalDesk.sln --no-restore --configuration Release
+    
+    - name: Test
+      run: dotnet test src/VitalDesk.sln --no-build --configuration Release --verbosity normal
+    
+    - name: Publish
+      run: dotnet publish src/VitalDesk.App/VitalDesk.App.csproj -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: VitalDesk-win-x64
+        path: src/VitalDesk.App/bin/Release/net9.0/win-x64/publish/VitalDesk.App.exe 

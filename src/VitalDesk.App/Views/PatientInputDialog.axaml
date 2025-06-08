@@ -1,0 +1,125 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        xmlns:vm="using:VitalDesk.App.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
+        x:Class="VitalDesk.App.Views.PatientInputDialog"
+        x:DataType="vm:PatientInputViewModel"
+        Title="Patient Information"
+        Width="500" Height="600"
+        MinWidth="400" MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Design.DataContext>
+        <vm:PatientInputViewModel/>
+    </Design.DataContext>
+
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="16">
+            
+            <!-- Header -->
+            <TextBlock Text="Patient Information" 
+                       FontSize="24" 
+                       FontWeight="Bold"
+                       Margin="0,0,0,16"/>
+
+            <!-- Patient Code -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Patient Code *" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding Code}"
+                         Watermark="Enter patient code..."
+                         IsEnabled="{Binding !IsEditMode}"/>
+            </StackPanel>
+
+            <!-- Patient Name -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Patient Name *" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding Name}"
+                         Watermark="Enter patient name..."/>
+            </StackPanel>
+
+            <!-- Birth Date -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Birth Date" FontWeight="SemiBold"/>
+                <DatePicker SelectedDate="{Binding BirthDate}"
+                            HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Insurance Number -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Insurance Number" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding InsuranceNo}"
+                         Watermark="Enter insurance number..."/>
+            </StackPanel>
+
+            <!-- First Visit -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="First Visit" FontWeight="SemiBold"/>
+                <DatePicker SelectedDate="{Binding FirstVisit}"
+                            HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Admission -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Admission Date" FontWeight="SemiBold"/>
+                <DatePicker SelectedDate="{Binding Admission}"
+                            HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Discharge -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Discharge Date" FontWeight="SemiBold"/>
+                <DatePicker SelectedDate="{Binding Discharge}"
+                            HorizontalAlignment="Stretch"/>
+            </StackPanel>
+
+            <!-- Validation Errors -->
+            <Border Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}"
+                    CornerRadius="8"
+                    Padding="12"
+                    IsVisible="{Binding !IsValid}">
+                <TextBlock Text="{Binding ValidationErrors}"
+                           Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                           TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Action Buttons -->
+            <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,24,0,0">
+                
+                <!-- Loading indicator -->
+                <StackPanel Grid.Column="0" 
+                            Orientation="Horizontal" 
+                            Spacing="8"
+                            IsVisible="{Binding IsSaving}">
+                    <ui:ProgressRing IsActive="{Binding IsSaving}" 
+                                     Width="20" 
+                                     Height="20"/>
+                    <TextBlock Text="Saving..." 
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                </StackPanel>
+
+                <!-- Cancel Button -->
+                <Button Grid.Column="1"
+                        Content="Cancel"
+                        Command="{Binding CancelCommand}"
+                        Width="100"
+                        Margin="0,0,8,0"
+                        IsEnabled="{Binding !IsSaving}"/>
+
+                <!-- Save Button -->
+                <Button Grid.Column="2"
+                        Content="Save"
+                        Command="{Binding SaveCommand}"
+                        Classes="accent"
+                        Width="100"
+                        IsEnabled="{Binding !IsSaving}"/>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window> 

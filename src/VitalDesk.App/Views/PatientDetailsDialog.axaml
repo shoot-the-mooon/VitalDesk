@@ -1,0 +1,186 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        xmlns:vm="using:VitalDesk.App.ViewModels"
+        xmlns:views="using:VitalDesk.App.Views"
+        xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+        x:Class="VitalDesk.App.Views.PatientDetailsDialog"
+        x:DataType="vm:PatientDetailsViewModel"
+        Title="患者詳細"
+        Width="900"
+        Height="700"
+        MinHeight="500"
+        MaxHeight="800"
+        SizeToContent="Manual"
+        WindowStartupLocation="CenterOwner">
+    
+    <ScrollViewer Margin="12" 
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  AllowAutoHide="False">
+        <StackPanel Spacing="24">
+            <!-- 患者基本情報 -->
+            <ui:SettingsExpander Header="患者基本情報" 
+                                IconSource="Contact"
+                                IsExpanded="True">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" 
+                      ColumnDefinitions="Auto,*,Auto,*" 
+                      Margin="16">
+                    <Grid.Styles>
+                        <Style Selector="TextBlock.label">
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Margin" Value="0,0,16,0"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                        <Style Selector="TextBlock.value">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Margin" Value="0,0,32,0"/>
+                        </Style>
+                    </Grid.Styles>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="患者コード:"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Patient.Code}"/>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="年齢:"/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" Classes="value" Text="{Binding PatientAge}"/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="患者名:"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding Patient.Name}"/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="2" Classes="label" Text="生年月日:"/>
+                    <TextBlock Grid.Row="1" Grid.Column="3" Classes="value" 
+                               Text="{Binding Patient.BirthDate, StringFormat='{}{0:yyyy/MM/dd}'}"/>
+                    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="保険番号:"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Classes="value" 
+                               Text="{Binding Patient.InsuranceNo}"/>
+                    
+                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="初診日:"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" 
+                               Text="{Binding Patient.FirstVisit, StringFormat='{}{0:yyyy/MM/dd}'}"/>
+                    
+                    <TextBlock Grid.Row="3" Grid.Column="2" Classes="label" Text="入院日:"/>
+                    <TextBlock Grid.Row="3" Grid.Column="3" Classes="value" 
+                               Text="{Binding Patient.Admission, StringFormat='{}{0:yyyy/MM/dd}'}"/>
+                    
+                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="退院日:"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" 
+                               Text="{Binding Patient.Discharge, StringFormat='{}{0:yyyy/MM/dd}'}"/>
+                </Grid>
+            </ui:SettingsExpander>
+            
+            <!-- バイタルサイン推移 -->
+            <StackPanel Spacing="16">
+                <!-- 操作ボタン -->
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Button Content="バイタル追加" 
+                            Command="{Binding AddVitalCommand}"
+                            Classes="accent"/>
+                    
+                    <ToggleButton Content="1週間"
+                                  IsChecked="{Binding ChartsViewModel.SelectedPeriod, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:PeriodFilter.Week}}"
+                                  Command="{Binding ChartsViewModel.ChangePeriodCommand}"
+                                  CommandParameter="{x:Static vm:PeriodFilter.Week}"/>
+                    
+                    <ToggleButton Content="1ヶ月"
+                                  IsChecked="{Binding ChartsViewModel.SelectedPeriod, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:PeriodFilter.Month}}"
+                                  Command="{Binding ChartsViewModel.ChangePeriodCommand}"
+                                  CommandParameter="{x:Static vm:PeriodFilter.Month}"/>
+                    
+                    <ToggleButton Content="全期間"
+                                  IsChecked="{Binding ChartsViewModel.SelectedPeriod, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:PeriodFilter.All}}"
+                                  Command="{Binding ChartsViewModel.ChangePeriodCommand}"
+                                  CommandParameter="{x:Static vm:PeriodFilter.All}"/>
+                    
+                    <Button Content="テストデータ生成" 
+                            Command="{Binding ChartsViewModel.GenerateTestDataCommand}"
+                            Background="Orange"/>
+                </StackPanel>
+                
+                <!-- 体温・脈拍グラフ -->
+                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8"
+                        Padding="16"
+                        IsVisible="{Binding ChartsViewModel.NoDataMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="体温・脈拍推移" 
+                                   FontWeight="SemiBold"
+                                   FontSize="16"
+                                   HorizontalAlignment="Center"/>
+                        <lvc:CartesianChart Series="{Binding ChartsViewModel.CombinedSeries}"
+                                           XAxes="{Binding ChartsViewModel.CombinedXAxes}"
+                                           YAxes="{Binding ChartsViewModel.CombinedYAxes}"
+                                           Height="250"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- データなしメッセージ -->
+                <Border Background="{DynamicResource InfoBarInformationalSeverityBackgroundBrush}"
+                        CornerRadius="4"
+                        Padding="16"
+                        IsVisible="{Binding ChartsViewModel.NoDataMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                        <ui:SymbolIcon Symbol="Important" 
+                                       Foreground="{DynamicResource InfoBarInformationalSeverityIconForegroundBrush}"/>
+                        <TextBlock Text="{Binding ChartsViewModel.NoDataMessage}"
+                                   Foreground="{DynamicResource InfoBarInformationalSeverityTitleForegroundBrush}"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- バイタルサインデータ表 -->
+                <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8"
+                        Padding="16">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="バイタルサイン一覧" 
+                                   FontWeight="SemiBold"
+                                   FontSize="16"/>
+                        <ScrollViewer MaxHeight="300">
+                            <DataGrid ItemsSource="{Binding RecentVitals}"
+                                      IsReadOnly="True"
+                                      GridLinesVisibility="Horizontal"
+                                      HeadersVisibility="Column">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="測定日時" 
+                                                        Binding="{Binding MeasuredAt, StringFormat='{}{0:MM/dd HH:mm}'}"
+                                                        Width="100"/>
+                                    <DataGridTextColumn Header="体温(°C)" 
+                                                        Binding="{Binding Temperature, StringFormat='{}{0:F1}'}"
+                                                        Width="80"/>
+                                    <DataGridTextColumn Header="脈拍(bpm)" 
+                                                        Binding="{Binding Pulse}"
+                                                        Width="80"/>
+                                    <DataGridTextColumn Header="血圧(mmHg)" 
+                                                        Width="100">
+                                        <DataGridTextColumn.Binding>
+                                            <MultiBinding StringFormat="{}{0}/{1}">
+                                                <Binding Path="Systolic"/>
+                                                <Binding Path="Diastolic"/>
+                                            </MultiBinding>
+                                        </DataGridTextColumn.Binding>
+                                    </DataGridTextColumn>
+                                    <DataGridTextColumn Header="体重(kg)" 
+                                                        Binding="{Binding Weight, StringFormat='{}{0:F1}'}"
+                                                        Width="80"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </ScrollViewer>
+                        
+                        <TextBlock Text="バイタルサインが記録されていません"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   IsVisible="{Binding !RecentVitals.Count}"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            
+
+            
+            <!-- 閉じるボタン -->
+            <Button Content="閉じる"
+                    HorizontalAlignment="Center"
+                    Margin="0,16,0,0"
+                    Click="OnCloseClick"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window> 

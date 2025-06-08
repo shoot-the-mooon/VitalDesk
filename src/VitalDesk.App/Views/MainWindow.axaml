@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:VitalDesk.App.ViewModels"
+        xmlns:views="using:VitalDesk.App.Views"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="VitalDesk.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="VitalDesk - Vital Signs Management System"
+        Width="1200" Height="800"
+        MinWidth="800" MinHeight="600">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <ui:NavigationView x:Name="NavigationView"
+                       IsPaneToggleButtonVisible="True"
+                       IsSettingsVisible="True"
+                       PaneDisplayMode="LeftCompact"
+                       PaneTitle="VitalDesk">
+        
+        <ui:NavigationView.MenuItems>
+            <ui:NavigationViewItem Content="Patients" 
+                                   Tag="patients"
+                                   IsSelected="True"
+                                   IconSource="People"/>
+            
+            <ui:NavigationViewItem Content="Reports" 
+                                   Tag="reports"
+                                   IconSource="Document"/>
+        </ui:NavigationView.MenuItems>
+        
+        <ui:NavigationView.FooterMenuItems>
+            <ui:NavigationViewItem Content="Settings" 
+                                   Tag="settings"
+                                   IconSource="Settings"/>
+        </ui:NavigationView.FooterMenuItems>
+        
+        <!-- Default content - Main patient view -->
+        <views:MainView x:Name="MainContent"/>
+        
+    </ui:NavigationView>
+
+</Window>

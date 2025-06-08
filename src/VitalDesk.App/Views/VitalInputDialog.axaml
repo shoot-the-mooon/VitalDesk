@@ -1,0 +1,187 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        xmlns:vm="using:VitalDesk.App.ViewModels"
+        x:Class="VitalDesk.App.Views.VitalInputDialog"
+        x:DataType="vm:VitalInputViewModel"
+        Width="550"
+        Height="750"
+        MinHeight="600"
+        MaxHeight="900"
+        SizeToContent="Manual"
+        WindowStartupLocation="CenterOwner">
+    
+    <ScrollViewer Margin="24" 
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  AllowAutoHide="False">
+        <StackPanel Spacing="24">
+            <!-- 選択された日時の表示 -->
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="測定日時"
+                               FontWeight="SemiBold"
+                               FontSize="16"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding MeasuredAt, StringFormat='{}{0:yyyy年MM月dd日 (dddd)}'}"
+                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+                               
+                    <!-- カレンダー表示 -->
+                    <Calendar SelectedDate="{Binding MeasuredAtDate}"
+                             FirstDayOfWeek="Sunday"
+                             IsTodayHighlighted="True"
+                             HorizontalAlignment="Center"
+                             Margin="0,8"/>
+                             
+                    <!-- 今日の日付設定ボタン -->
+                    <StackPanel Orientation="Horizontal" 
+                                HorizontalAlignment="Center"
+                                Spacing="8">
+                        <Button Content="今日"
+                                Click="OnSetTodayClick"
+                                FontSize="12"
+                                Padding="12,6"/>
+                        <Button Content="昨日"
+                                Click="OnSetYesterdayClick"
+                                FontSize="12"
+                                Padding="12,6"/>
+                        <Button Content="明日"
+                                Click="OnSetTomorrowClick"
+                                FontSize="12"
+                                Padding="12,6"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- バイタルサイン入力 -->
+            <StackPanel Spacing="24">
+                <!-- バイタルサイン入力 -->
+                
+                <!-- 体温 (必須) -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="体温 *" 
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+                    <TextBlock Text="30.0 ～ 45.0°C" 
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               FontSize="12"/>
+                    <NumericUpDown Value="{Binding Temperature}"
+                                   Minimum="30"
+                                   Maximum="45"
+                                   Increment="0.1"
+                                   FormatString="F1"/>
+                    <TextBlock Text="{Binding Temperature, StringFormat='{}{0}°C'}"
+                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                               FontSize="14"
+                               FontWeight="SemiBold"/>
+                </StackPanel>
+                
+                <!-- 脈拍 -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="脈拍" 
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+                    <TextBlock Text="30 ～ 200 bpm" 
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               FontSize="12"/>
+                    <NumericUpDown Value="{Binding Pulse}"
+                                   Minimum="30"
+                                   Maximum="200"
+                                   Increment="1"/>
+                    <TextBlock Text="{Binding Pulse, StringFormat='{}{0} bpm'}"
+                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               IsVisible="{Binding Pulse, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                </StackPanel>
+                
+                <!-- 血圧 -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="血圧" 
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+                    <TextBlock Text="収縮期/拡張期 mmHg" 
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               FontSize="12"/>
+                    <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <TextBlock Text="収縮期" FontSize="12" 
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <NumericUpDown Value="{Binding Systolic}"
+                                           Minimum="50"
+                                           Maximum="250"
+                                           Increment="1"/>
+                        </StackPanel>
+                        
+                        <TextBlock Grid.Column="1" Text=" / " 
+                                   VerticalAlignment="Bottom"
+                                   Margin="8,0,8,8"
+                                   FontWeight="Bold"/>
+                        
+                        <StackPanel Grid.Column="2" Spacing="4">
+                            <TextBlock Text="拡張期" FontSize="12"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <NumericUpDown Value="{Binding Diastolic}"
+                                           Minimum="30"
+                                           Maximum="150"
+                                           Increment="1"/>
+                        </StackPanel>
+                        
+                        <TextBlock Grid.Row="1" Grid.ColumnSpan="3"
+                                   Margin="0,8,0,0"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                   HorizontalAlignment="Center"
+                                   IsVisible="{Binding Systolic, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0}/{1} mmHg">
+                                    <Binding Path="Systolic"/>
+                                    <Binding Path="Diastolic"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Grid>
+                </StackPanel>
+                
+                <!-- 体重 -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="体重" 
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+                    <TextBlock Text="1.0 ～ 300.0 kg" 
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               FontSize="12"/>
+                    <NumericUpDown Value="{Binding Weight}"
+                                   Minimum="1"
+                                   Maximum="300"
+                                   Increment="0.1"
+                                   FormatString="F1"/>
+                    <TextBlock Text="{Binding Weight, StringFormat='{}{0} kg'}"
+                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               IsVisible="{Binding Weight, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                </StackPanel>
+            </StackPanel>
+            
+            <!-- ボタン -->
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Right" 
+                        Spacing="12"
+                        Margin="0,16,0,0">
+                <Button Content="キャンセル" 
+                        Command="{Binding CancelCommand}"/>
+                <Button Content="{Binding SaveButtonText}" 
+                        Command="{Binding SaveCommand}"
+                        Classes="accent"
+                        IsEnabled="{Binding !IsSaving}"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window> 

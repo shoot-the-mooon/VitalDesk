@@ -13,38 +13,60 @@
   </Design.DataContext>
 
   <ScrollViewer Padding="24">
-    <StackPanel Spacing="24" MaxWidth="600">
+    <StackPanel Spacing="24" MaxWidth="700">
       
       <!-- Header -->
-      <TextBlock Text="Settings" 
+      <TextBlock Text="設定" 
                  FontSize="28" 
                  FontWeight="Bold"
                  Margin="0,0,0,16"/>
 
-      <!-- Backup Section -->
-      <ui:SettingsExpander Header="Backup &amp; Data Management"
-                           Description="Manage your data backups and exports"
+      <!-- サンプルデータ生成セクション -->
+      <ui:SettingsExpander Header="サンプルデータ生成"
+                           Description="テスト用の患者データとバイタルサインデータを生成します"
                            IsExpanded="True">
+        
+        <ui:SettingsExpander.IconSource>
+          <ui:SymbolIconSource Symbol="People"/>
+        </ui:SettingsExpander.IconSource>
+        
+        <ui:SettingsExpanderItem Content="サンプル患者データを生成"
+                                 Description="100人の患者データとそれぞれのバイタルサインデータを自動生成します。既存のデータには影響しません。">
+          <ui:SettingsExpanderItem.Footer>
+            <Button Content="サンプルデータ生成"
+                    Command="{Binding GenerateSampleDataCommand}"
+                    IsEnabled="{Binding !IsProcessing}"/>
+          </ui:SettingsExpanderItem.Footer>
+        </ui:SettingsExpanderItem>
+        
+      </ui:SettingsExpander>
+
+      <!-- バックアップ・データ管理セクション -->
+      <ui:SettingsExpander Header="バックアップ・データ管理"
+                           Description="データのバックアップと復元、エクスポート機能を管理します">
         
         <ui:SettingsExpander.IconSource>
           <ui:SymbolIconSource Symbol="Save"/>
         </ui:SettingsExpander.IconSource>
         
-        <ui:SettingsExpanderItem Content="Create Backup">
+        <ui:SettingsExpanderItem Content="バックアップを作成"
+                                 Description="現在のデータベースの完全なバックアップを作成します。患者データとバイタルサインデータが含まれます。">
           <ui:SettingsExpanderItem.Footer>
-            <Button Content="Create Backup Now"
+            <Button Content="今すぐバックアップ"
                     Command="{Binding CreateBackupCommand}"
                     IsEnabled="{Binding !IsProcessing}"/>
           </ui:SettingsExpanderItem.Footer>
         </ui:SettingsExpanderItem>
         
-        <ui:SettingsExpanderItem Content="Auto Backup">
+        <ui:SettingsExpanderItem Content="自動バックアップ"
+                                 Description="アプリケーション終了時に自動的にバックアップを作成します。データの安全性を向上させます。">
           <ui:SettingsExpanderItem.Footer>
             <ToggleSwitch IsChecked="{Binding AutoBackupEnabled}"/>
           </ui:SettingsExpanderItem.Footer>
         </ui:SettingsExpanderItem>
         
-        <ui:SettingsExpanderItem Content="Backup Retention (days)">
+        <ui:SettingsExpanderItem Content="バックアップ保存期間（日数）"
+                                 Description="古いバックアップファイルを自動削除するまでの日数を設定します。ディスク容量を節約できます。">
           <ui:SettingsExpanderItem.Footer>
             <NumericUpDown Value="{Binding BackupRetentionDays}"
                            Minimum="1"
@@ -53,9 +75,10 @@
           </ui:SettingsExpanderItem.Footer>
         </ui:SettingsExpanderItem>
         
-        <ui:SettingsExpanderItem Content="Cleanup Old Backups">
+        <ui:SettingsExpanderItem Content="古いバックアップを削除"
+                                 Description="保存期間を過ぎた古いバックアップファイルを手動で削除します。ディスク容量を確保できます。">
           <ui:SettingsExpanderItem.Footer>
-            <Button Content="Cleanup"
+            <Button Content="古いファイルを削除"
                     Command="{Binding CleanupOldBackupsCommand}"
                     IsEnabled="{Binding !IsProcessing}"/>
           </ui:SettingsExpanderItem.Footer>
@@ -63,25 +86,27 @@
         
       </ui:SettingsExpander>
 
-      <!-- Export Section -->
-      <ui:SettingsExpander Header="Data Export"
-                           Description="Export your data to CSV files">
+      <!-- データエクスポートセクション -->
+      <ui:SettingsExpander Header="データエクスポート"
+                           Description="患者データやバイタルサインデータをCSVファイルに出力します">
         
         <ui:SettingsExpander.IconSource>
           <ui:SymbolIconSource Symbol="Share"/>
         </ui:SettingsExpander.IconSource>
         
-        <ui:SettingsExpanderItem Content="Export Patients">
+        <ui:SettingsExpanderItem Content="患者データをエクスポート"
+                                 Description="すべての患者の基本情報（名前、コード、生年月日など）をCSVファイルに出力します。Excel等で開けます。">
           <ui:SettingsExpanderItem.Footer>
-            <Button Content="Export to CSV"
+            <Button Content="CSVにエクスポート"
                     Command="{Binding ExportPatientsCommand}"
                     IsEnabled="{Binding !IsProcessing}"/>
           </ui:SettingsExpanderItem.Footer>
         </ui:SettingsExpanderItem>
         
-        <ui:SettingsExpanderItem Content="Export Vital Signs">
+        <ui:SettingsExpanderItem Content="バイタルサインをエクスポート"
+                                 Description="すべてのバイタルサインデータ（体温、血圧、脈拍など）をCSVファイルに出力します。データ分析に活用できます。">
           <ui:SettingsExpanderItem.Footer>
-            <Button Content="Export to CSV"
+            <Button Content="CSVにエクスポート"
                     Command="{Binding ExportVitalsCommand}"
                     IsEnabled="{Binding !IsProcessing}"/>
           </ui:SettingsExpanderItem.Footer>
@@ -89,82 +114,92 @@
         
       </ui:SettingsExpander>
 
-      <!-- Folders Section -->
-      <ui:SettingsExpander Header="Folders"
-                           Description="Open application folders">
+      <!-- フォルダ管理セクション -->
+      <ui:SettingsExpander Header="フォルダ管理"
+                           Description="アプリケーションが使用するフォルダを開いて内容を確認できます">
         
         <ui:SettingsExpander.IconSource>
           <ui:SymbolIconSource Symbol="Folder"/>
         </ui:SettingsExpander.IconSource>
         
-        <ui:SettingsExpanderItem Content="Backup Folder">
+        <ui:SettingsExpanderItem Content="バックアップフォルダを開く"
+                                 Description="バックアップファイルが保存されているフォルダを開きます。手動でバックアップファイルを管理できます。">
           <ui:SettingsExpanderItem.Footer>
-            <Button Content="Open Folder"
+            <Button Content="フォルダを開く"
                     Command="{Binding OpenBackupFolderCommand}"/>
           </ui:SettingsExpanderItem.Footer>
         </ui:SettingsExpanderItem>
         
-        <ui:SettingsExpanderItem Content="Logs Folder">
+        <ui:SettingsExpanderItem Content="ログフォルダを開く"
+                                 Description="アプリケーションのログファイルが保存されているフォルダを開きます。問題の診断に役立ちます。">
           <ui:SettingsExpanderItem.Footer>
-            <Button Content="Open Folder"
+            <Button Content="フォルダを開く"
                     Command="{Binding OpenLogsFolderCommand}"/>
+          </ui:SettingsExpanderItem.Footer>
+        </ui:SettingsExpanderItem>
+        
+        <ui:SettingsExpanderItem Content="データベースフォルダを開く"
+                                 Description="データベースファイルが保存されているフォルダを開きます。データベースファイルの場所を確認できます。">
+          <ui:SettingsExpanderItem.Footer>
+            <Button Content="フォルダを開く"
+                    Command="{Binding OpenDatabaseFolderCommand}"/>
           </ui:SettingsExpanderItem.Footer>
         </ui:SettingsExpanderItem>
         
       </ui:SettingsExpander>
 
-      <!-- Status Section -->
-      <Border Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-              CornerRadius="8"
-              Padding="16"
-              IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-        
-        <Grid ColumnDefinitions="Auto,*">
-          <ui:ProgressRing Grid.Column="0"
-                           IsActive="{Binding IsProcessing}"
-                           Width="24"
-                           Height="24"
-                           Margin="0,0,12,0"
-                           IsVisible="{Binding IsProcessing}"/>
-          
-          <ui:SymbolIcon Grid.Column="0"
-                         Symbol="Checkmark"
-                         Foreground="Green"
-                         Width="24"
-                         Height="24"
-                         Margin="0,0,12,0"
-                         IsVisible="{Binding !IsProcessing}"/>
-          
-          <TextBlock Grid.Column="1"
-                     Text="{Binding StatusMessage}"
-                     TextWrapping="Wrap"
-                     VerticalAlignment="Center"/>
-        </Grid>
-      </Border>
-
-      <!-- About Section -->
-      <ui:SettingsExpander Header="About VitalDesk"
-                           Description="Application information">
+      <!-- システム情報セクション -->
+      <ui:SettingsExpander Header="システム情報"
+                           Description="アプリケーションのバージョンや動作状況を確認できます">
         
         <ui:SettingsExpander.IconSource>
           <ui:SymbolIconSource Symbol="Help"/>
         </ui:SettingsExpander.IconSource>
         
-        <ui:SettingsExpanderItem Content="Version">
+        <ui:SettingsExpanderItem Content="アプリケーションバージョン"
+                                 Description="現在使用しているVitalDeskのバージョン情報です。">
           <ui:SettingsExpanderItem.Footer>
             <TextBlock Text="1.0.0" 
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
           </ui:SettingsExpanderItem.Footer>
         </ui:SettingsExpanderItem>
         
-        <ui:SettingsExpanderItem Content="Framework">
+        <ui:SettingsExpanderItem Content="フレームワーク"
+                                 Description="アプリケーションが使用している技術フレームワークの情報です。">
           <ui:SettingsExpanderItem.Footer>
-            <TextBlock Text=".NET 8.0 / Avalonia 11" 
+            <TextBlock Text=".NET 9.0 / Avalonia 11" 
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
           </ui:SettingsExpanderItem.Footer>
         </ui:SettingsExpanderItem>
         
+        <ui:SettingsExpanderItem Content="データベース統計"
+                                 Description="現在のデータベースに保存されているデータの統計情報です。">
+          <ui:SettingsExpanderItem.Footer>
+            <StackPanel Orientation="Horizontal" Spacing="16">
+              <TextBlock Text="{Binding PatientCount, StringFormat='患者: {0}人'}" 
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+              <TextBlock Text="{Binding VitalCount, StringFormat='バイタル: {0}件'}" 
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+            </StackPanel>
+          </ui:SettingsExpanderItem.Footer>
+        </ui:SettingsExpanderItem>
+        
       </ui:SettingsExpander>
+
+      <!-- 処理状況表示 -->
+      <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+              CornerRadius="4"
+              Padding="16"
+              IsVisible="{Binding IsProcessing}">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <ui:ProgressRing IsActive="{Binding IsProcessing}" 
+                           Width="24" 
+                           Height="24"/>
+          <TextBlock Text="{Binding ProcessingMessage}" 
+                     VerticalAlignment="Center"
+                     FontWeight="SemiBold"/>
+        </StackPanel>
+      </Border>
 
     </StackPanel>
   </ScrollViewer>

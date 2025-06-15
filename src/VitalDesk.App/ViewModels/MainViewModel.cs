@@ -15,6 +15,7 @@ namespace VitalDesk.App.ViewModels;
 public partial class MainViewModel : ViewModelBase
 {
     private readonly IPatientRepository _patientRepository;
+    private readonly SampleDataService _sampleDataService;
     
     [ObservableProperty]
     private ObservableCollection<Patient> _patients = new();
@@ -31,6 +32,7 @@ public partial class MainViewModel : ViewModelBase
     public MainViewModel()
     {
         _patientRepository = new PatientRepository();
+        _sampleDataService = new SampleDataService();
         _ = InitializeAsync();
     }
     
@@ -121,6 +123,60 @@ public partial class MainViewModel : ViewModelBase
     }
     
     [RelayCommand]
+    private async Task GenerateSampleDataAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow == null) return;
+
+            // 既にサンプルデータがあるかチェック
+            if (await _sampleDataService.HasSampleDataAsync())
+            {
+                var confirmDialog = new Views.ConfirmationDialog(
+                    "サンプルデータ生成の確認",
+                    "既に多くの患者データが存在します。追加でサンプルデータを生成しますか？",
+                    "生成する",
+                    "キャンセル"
+                );
+                
+                var result = await confirmDialog.ShowDialog<bool?>(mainWindow);
+                if (result != true)
+                {
+                    return;
+                }
+            }
+
+            await _sampleDataService.GenerateSamplePatientsAsync(100);
+            await LoadPatientsAsync();
+
+            var successDialog = new Views.MessageDialog(
+                "サンプルデータ生成完了",
+                "100人の患者データとバイタルサインデータを生成しました。"
+            );
+            await successDialog.ShowDialog(mainWindow);
+        }
+        catch (Exception ex)
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "エラー",
+                    $"サンプルデータの生成中にエラーが発生しました: {ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    [RelayCommand]
     private async Task EditPatientAsync(Patient? patient)
     {
         if (patient == null) return;
@@ -148,17 +204,56 @@ public partial class MainViewModel : ViewModelBase
         
         try
         {
-            // TODO: Show confirmation dialog
-            var success = await _patientRepository.DeleteAsync(patient.Id);
-            if (success)
+            // 確認ダイアログを表示
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow == null) return;
+            
+            var dialog = new Views.ConfirmationDialog(
+                "患者削除の確認",
+                $"患者「{patient.Name}」（コード: {patient.Code}）を削除しますか？\n\nこの操作は取り消せません。",
+                "削除",
+                "キャンセル"
+            );
+            
+            var result = await dialog.ShowDialog<bool?>(mainWindow);
+            
+            if (result == true)
             {
-                Patients.Remove(patient);
+                var success = await _patientRepository.DeleteAsync(patient.Id);
+                if (success)
+                {
+                    Patients.Remove(patient);
+                    
+                    // 成功メッセージを表示
+                    var successDialog = new Views.MessageDialog(
+                        "削除完了",
+                        $"患者「{patient.Name}」を削除しました。"
+                    );
+                    await successDialog.ShowDialog(mainWindow);
+                }
+                else
+                {
+                    // エラーメッセージを表示
+                    var errorDialog = new Views.MessageDialog(
+                        "削除エラー",
+                        "患者の削除に失敗しました。"
+                    );
+                    await errorDialog.ShowDialog(mainWindow);
+                }
             }
         }
         catch (Exception ex)
         {
-            // TODO: Show error message to user
-            System.Diagnostics.Debug.WriteLine($"Error deleting patient: {ex.Message}");
+            // エラーメッセージを表示
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "削除エラー",
+                    $"患者の削除中にエラーが発生しました: {ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
         }
     }
     

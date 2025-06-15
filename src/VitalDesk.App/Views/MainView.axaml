@@ -30,6 +30,12 @@
                    Width="200"
                    VerticalAlignment="Center"/>
           
+          <Button Content="サンプルデータ生成" 
+                  Command="{Binding GenerateSampleDataCommand}"
+                  IsEnabled="{Binding !IsLoading}"
+                  VerticalAlignment="Center"
+                  ToolTip.Tip="100人の患者データとバイタルサインデータを生成します"/>
+          
           <Button Content="患者追加" 
                   Command="{Binding AddPatientCommand}"
                   Classes="accent"

@@ -8,7 +8,7 @@
         x:Class="VitalDesk.App.Views.PatientInputDialog"
         x:DataType="vm:PatientInputViewModel"
         Title="患者情報"
-        Width="500" Height="600"
+        Width="450" Height="550"
         MinWidth="400" MinHeight="500"
         WindowStartupLocation="CenterOwner"
         CanResize="True">

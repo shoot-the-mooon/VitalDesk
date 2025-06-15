@@ -7,10 +7,10 @@
         x:Class="VitalDesk.App.Views.PatientDetailsDialog"
         x:DataType="vm:PatientDetailsViewModel"
         Title="患者詳細"
-        Width="900"
-        Height="800"
+        Width="850"
+        Height="750"
         MinHeight="500"
-        MaxHeight="800"
+        MaxHeight="700"
         SizeToContent="Manual"
         WindowStartupLocation="CenterOwner">
     
@@ -112,7 +112,7 @@
                 <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                         CornerRadius="8"
                         Padding="16"
-                        Height="500"
+                        Height="450"
                         IsVisible="{Binding ChartsViewModel.NoDataMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}">
                     <StackPanel Spacing="12">
                         <TextBlock Text="体温・脈拍推移" 

@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
         x:Class="VitalDesk.App.Views.PatientInputDialog"
         x:DataType="vm:PatientInputViewModel"
-        Title="Patient Information"
+        Title="患者情報"
         Width="500" Height="600"
         MinWidth="400" MinHeight="500"
         WindowStartupLocation="CenterOwner"
@@ -21,57 +21,57 @@
         <StackPanel Spacing="16">
             
             <!-- Header -->
-            <TextBlock Text="Patient Information" 
+            <TextBlock Text="患者情報" 
                        FontSize="24" 
                        FontWeight="Bold"
                        Margin="0,0,0,16"/>
 
             <!-- Patient Code -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Patient Code *" FontWeight="SemiBold"/>
+                <TextBlock Text="患者コード （必須）" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Code}"
-                         Watermark="Enter patient code..."
+                         Watermark="患者コードを入力してください..."
                          IsEnabled="{Binding !IsEditMode}"/>
             </StackPanel>
 
             <!-- Patient Name -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Patient Name *" FontWeight="SemiBold"/>
+                <TextBlock Text="患者名 （必須）" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Name}"
-                         Watermark="Enter patient name..."/>
+                         Watermark="患者名を入力してください..."/>
             </StackPanel>
 
             <!-- Birth Date -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Birth Date" FontWeight="SemiBold"/>
+                <TextBlock Text="生年月日" FontWeight="SemiBold"/>
                 <DatePicker SelectedDate="{Binding BirthDate}"
                             HorizontalAlignment="Stretch"/>
             </StackPanel>
 
             <!-- Insurance Number -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Insurance Number" FontWeight="SemiBold"/>
+                <TextBlock Text="保険番号" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding InsuranceNo}"
-                         Watermark="Enter insurance number..."/>
+                         Watermark="保険番号を入力してください..."/>
             </StackPanel>
 
             <!-- First Visit -->
             <StackPanel Spacing="8">
-                <TextBlock Text="First Visit" FontWeight="SemiBold"/>
+                <TextBlock Text="初診日" FontWeight="SemiBold"/>
                 <DatePicker SelectedDate="{Binding FirstVisit}"
                             HorizontalAlignment="Stretch"/>
             </StackPanel>
 
             <!-- Admission -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Admission Date" FontWeight="SemiBold"/>
+                <TextBlock Text="入院日" FontWeight="SemiBold"/>
                 <DatePicker SelectedDate="{Binding Admission}"
                             HorizontalAlignment="Stretch"/>
             </StackPanel>
 
             <!-- Discharge -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Discharge Date" FontWeight="SemiBold"/>
+                <TextBlock Text="退院日" FontWeight="SemiBold"/>
                 <DatePicker SelectedDate="{Binding Discharge}"
                             HorizontalAlignment="Stretch"/>
             </StackPanel>
@@ -97,7 +97,7 @@
                     <ui:ProgressRing IsActive="{Binding IsSaving}" 
                                      Width="20" 
                                      Height="20"/>
-                    <TextBlock Text="Saving..." 
+                    <TextBlock Text="保存中..." 
                                VerticalAlignment="Center"
                                FontSize="14"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
@@ -105,7 +105,7 @@
 
                 <!-- Cancel Button -->
                 <Button Grid.Column="1"
-                        Content="Cancel"
+                        Content="キャンセル"
                         Command="{Binding CancelCommand}"
                         Width="100"
                         Margin="0,0,8,0"
@@ -113,7 +113,7 @@
 
                 <!-- Save Button -->
                 <Button Grid.Column="2"
-                        Content="Save"
+                        Content="保存"
                         Command="{Binding SaveCommand}"
                         Classes="accent"
                         Width="100"

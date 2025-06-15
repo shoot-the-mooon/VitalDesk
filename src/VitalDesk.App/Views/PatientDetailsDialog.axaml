@@ -8,21 +8,21 @@
         x:DataType="vm:PatientDetailsViewModel"
         Title="患者詳細"
         Width="900"
-        Height="700"
+        Height="800"
         MinHeight="500"
         MaxHeight="800"
         SizeToContent="Manual"
         WindowStartupLocation="CenterOwner">
     
-    <ScrollViewer Margin="12" 
+    <ScrollViewer Margin="15" 
                   VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
-                  AllowAutoHide="False">
+                  AllowAutoHide="True">
         <StackPanel Spacing="24">
             <!-- 患者基本情報 -->
-            <ui:SettingsExpander Header="患者基本情報" 
+            <ui:SettingsExpander Header="患者基本情報を表示する" 
                                 IconSource="Contact"
-                                IsExpanded="True">
+                                IsExpanded="False">
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" 
                       ColumnDefinitions="Auto,*,Auto,*" 
                       Margin="16">
@@ -31,39 +31,49 @@
                             <Setter Property="FontWeight" Value="SemiBold"/>
                             <Setter Property="Margin" Value="0,0,16,0"/>
                             <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="MinWidth" Value="80"/>
                         </Style>
                         <Style Selector="TextBlock.value">
                             <Setter Property="VerticalAlignment" Value="Center"/>
                             <Setter Property="Margin" Value="0,0,32,0"/>
                         </Style>
                     </Grid.Styles>
-                    
-                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="患者コード:"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Patient.Code}"/>
-                    
-                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="年齢:"/>
-                    <TextBlock Grid.Row="0" Grid.Column="3" Classes="value" Text="{Binding PatientAge}"/>
-                    
-                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="患者名:"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding Patient.Name}"/>
-                    
-                    <TextBlock Grid.Row="1" Grid.Column="2" Classes="label" Text="生年月日:"/>
-                    <TextBlock Grid.Row="1" Grid.Column="3" Classes="value" 
+
+                     <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="患者名："/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Patient.Name}"/>
+                                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="生年月日："/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" 
                                Text="{Binding Patient.BirthDate, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                     
-                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="保険番号:"/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Classes="value" 
+                    <TextBlock Grid.Row="1" Grid.Column="2" Classes="label" Text="年齢："/>
+                    <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal" Spacing="2" Classes="value">
+                        <TextBlock Text="{Binding PatientAgeNumber}"
+                                   FontFamily="{StaticResource MonospaceFont}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   Margin="0,6.5,0,0"/>
+                        <TextBlock Text="歳"
+                                   FontFamily="{StaticResource JapaneseUIFont}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="患者コード："/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding Patient.Code}"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="label" Text="保険番号："/>
+                    <TextBlock Grid.Row="2" Grid.Column="3" Grid.ColumnSpan="3" Classes="value" 
                                Text="{Binding Patient.InsuranceNo}"/>
                     
-                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="初診日:"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="初診日："/>
                     <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" 
                                Text="{Binding Patient.FirstVisit, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                     
-                    <TextBlock Grid.Row="3" Grid.Column="2" Classes="label" Text="入院日:"/>
+                    <TextBlock Grid.Row="3" Grid.Column="2" Classes="label" Text="入院日："/>
                     <TextBlock Grid.Row="3" Grid.Column="3" Classes="value" 
                                Text="{Binding Patient.Admission, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                     
-                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="退院日:"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="退院日："/>
                     <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" 
                                Text="{Binding Patient.Discharge, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                 </Grid>
@@ -75,14 +85,15 @@
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <Button Content="バイタル追加" 
                             Command="{Binding AddVitalCommand}"
-                            Classes="accent"/>
+                            Classes="accent"
+                            Background="Orange"/>
                     
-                    <ToggleButton Content="1週間"
+                    <ToggleButton Content="１週間"
                                   IsChecked="{Binding ChartsViewModel.SelectedPeriod, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:PeriodFilter.Week}}"
                                   Command="{Binding ChartsViewModel.ChangePeriodCommand}"
                                   CommandParameter="{x:Static vm:PeriodFilter.Week}"/>
                     
-                    <ToggleButton Content="1ヶ月"
+                    <ToggleButton Content="１ヶ月"
                                   IsChecked="{Binding ChartsViewModel.SelectedPeriod, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:PeriodFilter.Month}}"
                                   Command="{Binding ChartsViewModel.ChangePeriodCommand}"
                                   CommandParameter="{x:Static vm:PeriodFilter.Month}"/>
@@ -101,6 +112,7 @@
                 <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                         CornerRadius="8"
                         Padding="16"
+                        Height="500"
                         IsVisible="{Binding ChartsViewModel.NoDataMessage, Converter={x:Static StringConverters.IsNullOrEmpty}}">
                     <StackPanel Spacing="12">
                         <TextBlock Text="体温・脈拍推移" 
@@ -110,7 +122,7 @@
                         <lvc:CartesianChart Series="{Binding ChartsViewModel.CombinedSeries}"
                                            XAxes="{Binding ChartsViewModel.CombinedXAxes}"
                                            YAxes="{Binding ChartsViewModel.CombinedYAxes}"
-                                           Height="250"/>
+                                           Height="400"/>
                     </StackPanel>
                 </Border>
                 
@@ -139,29 +151,57 @@
                             <DataGrid ItemsSource="{Binding RecentVitals}"
                                       IsReadOnly="True"
                                       GridLinesVisibility="Horizontal"
-                                      HeadersVisibility="Column">
+                                      HeadersVisibility="Column"
+                                      RowHeight="32">
+                                <DataGrid.Styles>
+                                    <!-- ヘッダースタイル：レイアウト最適化 -->
+                                    <Style Selector="DataGridColumnHeader">
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="8,8"/>
+                                        <Setter Property="Height" Value="40"/>
+                                    </Style>
+                                    <!-- セルスタイル -->
+                                    <Style Selector="DataGridCell">
+                                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="8,6"/>
+                                    </Style>
+                                    <!-- データ部分の等幅フォント設定 -->
+                                    <Style Selector="DataGridCell TextBlock">
+                                        <Setter Property="FontFamily" Value="{StaticResource MonospaceFont}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGrid.Styles>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="測定日時" 
                                                         Binding="{Binding MeasuredAt, StringFormat='{}{0:MM/dd HH:mm}'}"
-                                                        Width="100"/>
-                                    <DataGridTextColumn Header="体温(°C)" 
-                                                        Binding="{Binding Temperature, StringFormat='{}{0:F1}'}"
-                                                        Width="80"/>
-                                    <DataGridTextColumn Header="脈拍(bpm)" 
-                                                        Binding="{Binding Pulse}"
-                                                        Width="80"/>
-                                    <DataGridTextColumn Header="血圧(mmHg)" 
-                                                        Width="100">
+                                                        Width="120"
+                                                        FontFamily="Consolas, 'Courier New', monospace"/>
+                                    <DataGridTextColumn Header="体温" 
+                                                        Binding="{Binding Temperature, StringFormat='{}{0:F1}°C'}"
+                                                        Width="90"
+                                                        FontFamily="Consolas, 'Courier New', monospace"/>
+                                    <DataGridTextColumn Header="脈拍" 
+                                                        Binding="{Binding Pulse, StringFormat='{}{0}bpm'}"
+                                                        Width="90"
+                                                        FontFamily="Consolas, 'Courier New', monospace"/>
+                                    <DataGridTextColumn Header="血圧" 
+                                                        Width="110"
+                                                        FontFamily="Consolas, 'Courier New', monospace">
                                         <DataGridTextColumn.Binding>
-                                            <MultiBinding StringFormat="{}{0}/{1}">
+                                            <MultiBinding StringFormat="{}{0}/{1}mmHg">
                                                 <Binding Path="Systolic"/>
                                                 <Binding Path="Diastolic"/>
                                             </MultiBinding>
                                         </DataGridTextColumn.Binding>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="体重(kg)" 
-                                                        Binding="{Binding Weight, StringFormat='{}{0:F1}'}"
-                                                        Width="80"/>
+                                    <DataGridTextColumn Header="体重" 
+                                                        Binding="{Binding Weight, StringFormat='{}{0:F1}kg'}"
+                                                        Width="90"
+                                                        FontFamily="Consolas, 'Courier New', monospace"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </ScrollViewer>

@@ -51,7 +51,16 @@ public class PatientRepository : IPatientRepository
             VALUES (@Code, @Name, @BirthDate, @InsuranceNo, @FirstVisit, @Admission, @Discharge);
             SELECT last_insert_rowid();";
         
-        return await connection.QuerySingleAsync<int>(sql, patient);
+        var parameters = new DynamicParameters();
+        parameters.Add("@Code", patient.Code);
+        parameters.Add("@Name", patient.Name);
+        parameters.Add("@BirthDate", patient.BirthDate);
+        parameters.Add("@InsuranceNo", patient.InsuranceNo);
+        parameters.Add("@FirstVisit", patient.FirstVisit);
+        parameters.Add("@Admission", patient.Admission);
+        parameters.Add("@Discharge", patient.Discharge);
+        
+        return await connection.QuerySingleAsync<int>(sql, parameters);
     }
     
     public async Task<bool> UpdateAsync(Patient patient)
@@ -64,7 +73,17 @@ public class PatientRepository : IPatientRepository
                 Admission = @Admission, Discharge = @Discharge
             WHERE Id = @Id";
         
-        var rowsAffected = await connection.ExecuteAsync(sql, patient);
+        var parameters = new DynamicParameters();
+        parameters.Add("@Id", patient.Id);
+        parameters.Add("@Code", patient.Code);
+        parameters.Add("@Name", patient.Name);
+        parameters.Add("@BirthDate", patient.BirthDate);
+        parameters.Add("@InsuranceNo", patient.InsuranceNo);
+        parameters.Add("@FirstVisit", patient.FirstVisit);
+        parameters.Add("@Admission", patient.Admission);
+        parameters.Add("@Discharge", patient.Discharge);
+        
+        var rowsAffected = await connection.ExecuteAsync(sql, parameters);
         return rowsAffected > 0;
     }
     

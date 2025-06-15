@@ -65,7 +65,16 @@ public class VitalRepository : IVitalRepository
             VALUES (@PatientId, @MeasuredAt, @Temperature, @Pulse, @Systolic, @Diastolic, @Weight);
             SELECT last_insert_rowid();";
         
-        return await connection.QuerySingleAsync<int>(sql, vital);
+        var parameters = new DynamicParameters();
+        parameters.Add("@PatientId", vital.PatientId);
+        parameters.Add("@MeasuredAt", vital.MeasuredAt);
+        parameters.Add("@Temperature", vital.Temperature);
+        parameters.Add("@Pulse", vital.Pulse);
+        parameters.Add("@Systolic", vital.Systolic);
+        parameters.Add("@Diastolic", vital.Diastolic);
+        parameters.Add("@Weight", vital.Weight);
+        
+        return await connection.QuerySingleAsync<int>(sql, parameters);
     }
     
     public async Task<bool> UpdateAsync(Vital vital)
@@ -77,7 +86,17 @@ public class VitalRepository : IVitalRepository
                 Pulse = @Pulse, Systolic = @Systolic, Diastolic = @Diastolic, Weight = @Weight
             WHERE Id = @Id";
         
-        var rowsAffected = await connection.ExecuteAsync(sql, vital);
+        var parameters = new DynamicParameters();
+        parameters.Add("@Id", vital.Id);
+        parameters.Add("@PatientId", vital.PatientId);
+        parameters.Add("@MeasuredAt", vital.MeasuredAt);
+        parameters.Add("@Temperature", vital.Temperature);
+        parameters.Add("@Pulse", vital.Pulse);
+        parameters.Add("@Systolic", vital.Systolic);
+        parameters.Add("@Diastolic", vital.Diastolic);
+        parameters.Add("@Weight", vital.Weight);
+        
+        var rowsAffected = await connection.ExecuteAsync(sql, parameters);
         return rowsAffected > 0;
     }
     

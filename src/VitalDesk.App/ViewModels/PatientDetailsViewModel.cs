@@ -25,6 +25,9 @@ public partial class PatientDetailsViewModel : ViewModelBase
     [ObservableProperty]
     private string _patientAge = string.Empty;
     
+    [ObservableProperty]
+    private string _patientAgeNumber = string.Empty;
+    
     public VitalChartsViewModel ChartsViewModel { get; }
 
     public PatientDetailsViewModel(Patient patient)
@@ -45,10 +48,12 @@ public partial class PatientDetailsViewModel : ViewModelBase
             if (Patient.BirthDate.Value.Date > DateTime.Today.AddYears(-age))
                 age--;
             PatientAge = $"{age}歳";
+            PatientAgeNumber = age.ToString();
         }
         else
         {
             PatientAge = "不明";
+            PatientAgeNumber = "不明";
         }
     }
     

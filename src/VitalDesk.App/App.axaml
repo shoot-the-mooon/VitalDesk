@@ -9,8 +9,66 @@
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
-
+  
     <Application.Styles>
         <sty:FluentAvaloniaTheme />
+        
+        <!-- 全角・半角フォント統一のためのグローバルスタイル -->
+        <Style>
+            <Style.Resources>
+                <!-- 日本語UI用統一フォントファミリー -->
+                <FontFamily x:Key="JapaneseUIFont">Noto Sans JP, Yu Gothic UI, Meiryo UI, sans-serif</FontFamily>
+                <!-- 数値・データ表示用等幅フォント -->
+                <FontFamily x:Key="MonospaceFont">Consolas, Courier New, monospace</FontFamily>
+            </Style.Resources>
+        </Style>
+        
+        <!-- 全てのTextBlockのデフォルトフォントを統一 -->
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource JapaneseUIFont}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- 全てのButtonのデフォルトフォントを統一 -->
+        <Style Selector="Button">
+            <Setter Property="FontFamily" Value="{StaticResource JapaneseUIFont}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- 全てのToggleButtonのデフォルトフォントを統一 -->
+        <Style Selector="ToggleButton">
+            <Setter Property="FontFamily" Value="{StaticResource JapaneseUIFont}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- 全てのTextBoxのデフォルトフォントを統一 -->
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="{StaticResource JapaneseUIFont}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- 全てのNumericUpDownのデフォルトフォントを統一 -->
+        <Style Selector="NumericUpDown">
+            <Setter Property="FontFamily" Value="{StaticResource JapaneseUIFont}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- DataGridの統一フォント設定 -->
+        <Style Selector="DataGrid">
+            <Setter Property="FontFamily" Value="{StaticResource JapaneseUIFont}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- ComboBoxの統一フォント設定 -->
+        <Style Selector="ComboBox">
+            <Setter Property="FontFamily" Value="{StaticResource JapaneseUIFont}"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        
+        <!-- ウィンドウタイトルのフォント設定 -->
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="{StaticResource JapaneseUIFont}"/>
+        </Style>
+        
     </Application.Styles>
 </Application>

@@ -48,11 +48,11 @@ public partial class VitalInputDialog : Window
         }
     }
     
-    private void OnSetTomorrowClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnSetDayBeforeYesterdayClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is VitalInputViewModel viewModel)
         {
-            viewModel.MeasuredAt = DateTimeOffset.Now.AddDays(1);
+            viewModel.MeasuredAt = DateTimeOffset.Now.AddDays(-2);
         }
     }
 } 

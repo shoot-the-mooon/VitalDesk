@@ -56,6 +56,41 @@ public partial class VitalInputViewModel : ObservableValidator
     partial void OnMeasuredAtChanged(DateTimeOffset value)
     {
         OnPropertyChanged(nameof(MeasuredAtDate));
+        OnPropertyChanged(nameof(MeasuredAtFullWidthString));
+    }
+    
+    // 全角文字での日付表示
+    public string MeasuredAtFullWidthString
+    {
+        get
+        {
+            var date = MeasuredAt.DateTime;
+            var dayOfWeek = date.ToString("dddd", new System.Globalization.CultureInfo("ja-JP"));
+            
+            // 半角数字を全角数字に変換
+            var year = ToFullWidth(date.Year.ToString());
+            var month = ToFullWidth(date.Month.ToString());
+            var day = ToFullWidth(date.Day.ToString());
+            
+            return $"{year}年{month}月{day}日　（{dayOfWeek}）";
+        }
+    }
+    
+    // 半角数字を全角数字に変換するヘルパーメソッド
+    private static string ToFullWidth(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        
+        return input.Replace('0', '０')
+                   .Replace('1', '１')
+                   .Replace('2', '２')
+                   .Replace('3', '３')
+                   .Replace('4', '４')
+                   .Replace('5', '５')
+                   .Replace('6', '６')
+                   .Replace('7', '７')
+                   .Replace('8', '８')
+                   .Replace('9', '９');
     }
     
     [ObservableProperty]

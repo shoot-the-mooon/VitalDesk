@@ -6,7 +6,24 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    
+    <!-- より軽量なトリミング設定 -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+    <!-- 特定の警告を無視 -->
+    <NoWarn>$(NoWarn);IL2026;IL2057;IL2104</NoWarn>
   </PropertyGroup>
+
+  <!-- 最小限の保護設定 -->
+  <ItemGroup>
+    <TrimmerRootAssembly Include="VitalDesk.Core" />
+  </ItemGroup>
+
+  <!-- 特定の型を保護 -->
+  <ItemGroup>
+    <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
+  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Models\" />

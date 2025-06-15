@@ -18,7 +18,7 @@
     <Border Grid.Row="0" Background="{DynamicResource SystemAccentColor}" Padding="16">
       <Grid ColumnDefinitions="*,Auto">
         <TextBlock Grid.Column="0" 
-                   Text="VitalDesk - Patient Management" 
+                   Text="バイタルサイン管理システム" 
                    FontSize="20" 
                    FontWeight="Bold"
                    Foreground="White"
@@ -26,11 +26,11 @@
         
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
           <TextBox Text="{Binding SearchText}" 
-                   Watermark="Search patients..."
+                   Watermark="患者を検索..."
                    Width="200"
                    VerticalAlignment="Center"/>
           
-          <Button Content="Add Patient" 
+          <Button Content="患者追加" 
                   Command="{Binding AddPatientCommand}"
                   Classes="accent"
                   VerticalAlignment="Center"/>
@@ -55,40 +55,40 @@
                 HeadersVisibility="Column">
         
         <DataGrid.Columns>
-          <DataGridTextColumn Header="Code" 
+          <DataGridTextColumn Header="患者コード" 
                               Binding="{Binding Code}" 
-                              Width="100"/>
+                              Width="120"/>
           
-          <DataGridTextColumn Header="Name" 
+          <DataGridTextColumn Header="患者名" 
                               Binding="{Binding Name}" 
                               Width="200"/>
           
-          <DataGridTextColumn Header="Age" 
+          <DataGridTextColumn Header="年齢" 
                               Binding="{Binding Age}" 
                               Width="80"/>
           
-          <DataGridTextColumn Header="Admission" 
-                              Binding="{Binding Admission, StringFormat=yyyy-MM-dd}" 
+          <DataGridTextColumn Header="入院日" 
+                              Binding="{Binding Admission, StringFormat=yyyy/MM/dd}" 
                               Width="120"/>
           
-          <DataGridTemplateColumn Header="Actions" Width="200">
+          <DataGridTemplateColumn Header="操作" Width="200">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Content="View" 
+                  <Button Content="詳細" 
                           Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).ViewPatientDetailsCommand}"
                           CommandParameter="{Binding}"
                           Classes="accent"
                           FontSize="12"
                           Padding="8,4"/>
                   
-                  <Button Content="Edit" 
+                  <Button Content="編集" 
                           Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).EditPatientCommand}"
                           CommandParameter="{Binding}"
                           FontSize="12"
                           Padding="8,4"/>
                   
-                  <Button Content="Delete" 
+                  <Button Content="削除" 
                           Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).DeletePatientCommand}"
                           CommandParameter="{Binding}"
                           Classes="danger"
@@ -112,7 +112,7 @@
           <ui:ProgressRing IsActive="{Binding IsLoading}" 
                            Width="48" 
                            Height="48"/>
-          <TextBlock Text="Loading patients..." 
+          <TextBlock Text="患者データを読み込み中..." 
                      HorizontalAlignment="Center"
                      FontSize="16"/>
         </StackPanel>
@@ -123,9 +123,25 @@
               Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
               Padding="8"
               Margin="0,8,0,0">
-        <TextBlock Text="{Binding Patients.Count, StringFormat='Total patients: {0}'}"
-                   FontSize="12"
-                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <TextBlock Text="登録患者数："
+                     FontSize="12"
+                     FontFamily="{StaticResource JapaneseUIFont}"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     VerticalAlignment="Center"/>
+          <TextBlock Text="{Binding Patients.Count}"
+                     FontSize="12"
+                     FontFamily="{StaticResource MonospaceFont}"
+                     FontWeight="SemiBold"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     VerticalAlignment="Center"
+                     Margin="0,5.5,0,0"/>
+          <TextBlock Text="人"
+                     FontSize="12"
+                     FontFamily="{StaticResource JapaneseUIFont}"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     VerticalAlignment="Center"/>
+        </StackPanel>
       </Border>
     </Grid>
   </Grid>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<linker>
+  <!-- VitalDesk.Core モデルクラスを保護 -->
+  <assembly fullname="VitalDesk.Core">
+    <type fullname="VitalDesk.Core.Models.Patient" preserve="all" />
+    <type fullname="VitalDesk.Core.Models.Vital" preserve="all" />
+  </assembly>
+  
+  <!-- Dapper の必要な部分を保護 -->
+  <assembly fullname="Dapper">
+    <type fullname="Dapper.SqlMapper" preserve="all" />
+    <type fullname="Dapper.DynamicParameters" preserve="all" />
+  </assembly>
+  
+  <!-- System.Data 関連を保護 -->
+  <assembly fullname="System.Data.Common">
+    <type fullname="System.Data.Common.DbParameter" preserve="all" />
+    <type fullname="System.Data.Common.DbParameterCollection" preserve="all" />
+  </assembly>
+</linker> 

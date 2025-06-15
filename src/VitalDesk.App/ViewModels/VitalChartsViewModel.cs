@@ -15,6 +15,7 @@ using VitalDesk.Core.Repositories;
 
 namespace VitalDesk.App.ViewModels;
 
+
 public enum PeriodFilter
 {
     Week,
@@ -23,7 +24,13 @@ public enum PeriodFilter
 }
 
 public partial class VitalChartsViewModel : ViewModelBase
-{
+{   
+    private static readonly SKTypeface JpTypeface = SKTypeface.FromFamilyName(
+        OperatingSystem.IsWindows() ? "Yu Gothic UI" :
+        OperatingSystem.IsMacOS()   ? "Hiragino Sans" :
+                                      "Noto Sans CJK JP") 
+        ?? SKTypeface.Default;
+        
     private readonly IVitalRepository _vitalRepository;
     private readonly Patient _patient;
     private List<Vital> _allVitals = new();
@@ -62,10 +69,9 @@ public partial class VitalChartsViewModel : ViewModelBase
         var xAxis = new Axis
         {
             Name = "測定日時",
-            NamePaint = new SolidColorPaint(SKColors.Black),
-            LabelsPaint = new SolidColorPaint(SKColors.Gray),
-            Labeler = index => GetDateLabel((int)index),
-            SeparatorsPaint = new SolidColorPaint(SKColors.LightGray) { StrokeThickness = 1 }
+            NamePaint = new SolidColorPaint(SKColors.Black) { SKTypeface = JpTypeface },
+            LabelsPaint = new SolidColorPaint(SKColors.Gray) { SKTypeface = JpTypeface },
+            Labeler = index => GetDateLabel((int)index)
         };
         
         // 統一軸設定: 34°C=40bpm=0、40°C=160bpm=100の正規化スケール
@@ -73,26 +79,28 @@ public partial class VitalChartsViewModel : ViewModelBase
         var temperatureAxis = new Axis
         {
             Name = "体温 (°C)",
-            NamePaint = new SolidColorPaint(SKColors.Red),
-            LabelsPaint = new SolidColorPaint(SKColors.Red),
+            NamePaint = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
+            LabelsPaint = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
             Position = LiveChartsCore.Measure.AxisPosition.Start,
             MinLimit = 0,
             MaxLimit = 100,
-            SeparatorsPaint = new SolidColorPaint(SKColors.LightGray) { StrokeThickness = 1 },
-            Labeler = value => (34 + (value / 100.0) * 6).ToString("F1") // 0-100 → 34-40°C
+            Labeler = value => (30 + (value/100 ) * 15).ToString("F1"), // 0-100 → 30-45°C
+            UnitWidth = 10, // グリッド線を適度に（10単位ごと）
+            
         };
         
         // 脈拍軸（右）- 正規化された値で表示  
         var pulseAxis = new Axis
         {
             Name = "脈拍 (bpm)",
-            NamePaint = new SolidColorPaint(SKColors.Blue),
-            LabelsPaint = new SolidColorPaint(SKColors.Blue),
+            NamePaint = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
+            LabelsPaint = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
             Position = LiveChartsCore.Measure.AxisPosition.End,
             MinLimit = 0,
             MaxLimit = 100,
-            SeparatorsPaint = new SolidColorPaint(SKColors.LightGray) { StrokeThickness = 1 },
-            Labeler = value => (40 + (value / 100.0) * 120).ToString("F0") // 0-100 → 40-160bpm
+            Labeler = value => (40 + (value / 100.0) * 120).ToString("F0"), // 0-100 → 40-160bpm
+            UnitWidth = 10, // グリッド線を適度に（10単位ごと）
+            
         };
         
         CombinedXAxes.Add(xAxis);
@@ -222,10 +230,10 @@ public partial class VitalChartsViewModel : ViewModelBase
         {
             Values = temperatureData,
             Name = "体温",
-            Stroke = new SolidColorPaint(SKColors.Red) { StrokeThickness = 2 },
+            Stroke = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface, StrokeThickness = 2 },
             Fill = null,
-            GeometryStroke = new SolidColorPaint(SKColors.Red) { StrokeThickness = 2 },
-            GeometryFill = new SolidColorPaint(SKColors.Red),
+            GeometryStroke = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface, StrokeThickness = 2 },
+            GeometryFill = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
             GeometrySize = 6,
             ScalesYAt = 0 // 左軸（体温）
         };
@@ -237,10 +245,10 @@ public partial class VitalChartsViewModel : ViewModelBase
         {
             Values = pulseData,
             Name = "脈拍",
-            Stroke = new SolidColorPaint(SKColors.Blue) { StrokeThickness = 2 },
+            Stroke = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface, StrokeThickness = 2 },
             Fill = null,
-            GeometryStroke = new SolidColorPaint(SKColors.Blue) { StrokeThickness = 2 },
-            GeometryFill = new SolidColorPaint(SKColors.Blue),
+            GeometryStroke = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface, StrokeThickness = 2 },
+            GeometryFill = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
             GeometrySize = 6,
             ScalesYAt = 1 // 右軸（脈拍）
         };
@@ -291,11 +299,11 @@ public partial class VitalChartsViewModel : ViewModelBase
         return vital.MeasuredAt.ToString("MM/dd");
     }
     
-    // 体温を0-100スケールに正規化（34°C=0, 40°C=100）
+    // 体温を0-100スケールに正規化（30°C=0, 45°C=100）
     private static double NormalizeTemperature(double temperature)
     {
-        const double minTemp = 34.0;
-        const double maxTemp = 40.0;
+        const double minTemp = 30.0;
+        const double maxTemp = 45.0;
         return Math.Max(0, Math.Min(100, (temperature - minTemp) / (maxTemp - minTemp) * 100));
     }
     

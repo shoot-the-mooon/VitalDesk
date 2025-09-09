@@ -26,12 +26,33 @@
                        FontWeight="Bold"
                        Margin="0,0,0,16"/>
 
-            <!-- Patient Code -->
+            <!-- National Health Insurance -->
             <StackPanel Spacing="8">
-                <TextBlock Text="患者コード （必須）" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Code}"
-                         Watermark="患者コードを入力してください..."
+                <TextBlock Text="国保 （必須）" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding NationalHealthInsurance}"
+                         Watermark="国保番号を入力してください..."
                          IsEnabled="{Binding !IsEditMode}"/>
+            </StackPanel>
+
+            <!-- Symbol -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="記号" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding Symbol}"
+                         Watermark="記号を入力してください..."/>
+            </StackPanel>
+
+            <!-- Number -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="番号" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding Number}"
+                         Watermark="番号を入力してください..."/>
+            </StackPanel>
+
+            <!-- Insurer Name -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="保険者名" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding InsurerName}"
+                         Watermark="保険者名を入力してください..."/>
             </StackPanel>
 
             <!-- Patient Name -->
@@ -41,18 +62,18 @@
                          Watermark="患者名を入力してください..."/>
             </StackPanel>
 
+            <!-- Furigana -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="フリガナ （必須）" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding Furigana}"
+                         Watermark="フリガナを入力してください..."/>
+            </StackPanel>
+
             <!-- Birth Date -->
             <StackPanel Spacing="8">
                 <TextBlock Text="生年月日" FontWeight="SemiBold"/>
                 <DatePicker SelectedDate="{Binding BirthDate}"
                             HorizontalAlignment="Stretch"/>
-            </StackPanel>
-
-            <!-- Insurance Number -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="保険番号" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding InsuranceNo}"
-                         Watermark="保険番号を入力してください..."/>
             </StackPanel>
 
             <!-- First Visit -->

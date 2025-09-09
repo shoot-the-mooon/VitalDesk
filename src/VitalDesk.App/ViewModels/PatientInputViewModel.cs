@@ -15,9 +15,18 @@ public partial class PatientInputViewModel : ObservableValidator
     private readonly IPatientRepository _patientRepository;
     
     [ObservableProperty]
-    [Required(ErrorMessage = "Patient code is required")]
-    [MinLength(1, ErrorMessage = "Patient code cannot be empty")]
-    private string _code = string.Empty;
+    [Required(ErrorMessage = "National Health Insurance is required")]
+    [MinLength(1, ErrorMessage = "National Health Insurance cannot be empty")]
+    private string _nationalHealthInsurance = string.Empty;
+    
+    [ObservableProperty]
+    private string _symbol = string.Empty;
+    
+    [ObservableProperty]
+    private string _number = string.Empty;
+    
+    [ObservableProperty]
+    private string _insurerName = string.Empty;
     
     [ObservableProperty]
     [Required(ErrorMessage = "Patient name is required")]
@@ -25,10 +34,12 @@ public partial class PatientInputViewModel : ObservableValidator
     private string _name = string.Empty;
     
     [ObservableProperty]
-    private DateTimeOffset? _birthDate;
+    [Required(ErrorMessage = "Furigana is required")]
+    [MinLength(1, ErrorMessage = "Furigana cannot be empty")]
+    private string _furigana = string.Empty;
     
     [ObservableProperty]
-    private string _insuranceNo = string.Empty;
+    private DateTimeOffset? _birthDate;
     
     [ObservableProperty]
     private DateTimeOffset? _firstVisit = DateTimeOffset.Now;
@@ -51,7 +62,7 @@ public partial class PatientInputViewModel : ObservableValidator
     public bool IsEditMode { get; private set; }
     public int? PatientId { get; private set; }
     
-    public event EventHandler<bool>? RequestClose;
+    public event EventHandler<Patient?>? RequestClose;
     
     public PatientInputViewModel()
     {
@@ -63,10 +74,13 @@ public partial class PatientInputViewModel : ObservableValidator
     {
         IsEditMode = true;
         PatientId = patient.Id;
-        Code = patient.Code;
+        NationalHealthInsurance = patient.NationalHealthInsurance;
+        Symbol = patient.Symbol ?? string.Empty;
+        Number = patient.Number ?? string.Empty;
+        InsurerName = patient.InsurerName ?? string.Empty;
         Name = patient.Name;
+        Furigana = patient.Furigana ?? string.Empty;
         BirthDate = patient.BirthDate?.ToDateTimeOffset();
-        InsuranceNo = patient.InsuranceNo ?? string.Empty;
         FirstVisit = patient.FirstVisit?.ToDateTimeOffset();
         Admission = patient.Admission?.ToDateTimeOffset();
         Discharge = patient.Discharge?.ToDateTimeOffset();
@@ -93,38 +107,51 @@ public partial class PatientInputViewModel : ObservableValidator
             var patient = new Patient
             {
                 Id = PatientId ?? 0,
-                Code = Code.Trim(),
+                NationalHealthInsurance = NationalHealthInsurance.Trim(),
+                Symbol = Symbol.Trim(),
+                Number = Number.Trim(),
+                InsurerName = InsurerName.Trim(),
                 Name = Name.Trim(),
+                Furigana = Furigana.Trim(),
                 BirthDate = BirthDate?.DateTime,
-                InsuranceNo = string.IsNullOrWhiteSpace(InsuranceNo) ? null : InsuranceNo.Trim(),
                 FirstVisit = FirstVisit?.DateTime,
                 Admission = Admission?.DateTime,
                 Discharge = Discharge?.DateTime
             };
             
             bool success;
+            Patient? savedPatient = null;
             if (IsEditMode)
             {
                 success = await _patientRepository.UpdateAsync(patient);
+                if (success)
+                {
+                    savedPatient = patient;
+                }
             }
             else
             {
-                // Check if patient code already exists
-                var existingPatient = await _patientRepository.GetByCodeAsync(patient.Code);
+                // Check if national health insurance already exists
+                var existingPatient = await _patientRepository.GetByCodeAsync(patient.NationalHealthInsurance);
                 if (existingPatient != null)
                 {
-                    ValidationErrors = "Patient code already exists. Please use a different code.";
+                    ValidationErrors = "National Health Insurance already exists. Please use a different number.";
                     IsValid = false;
                     return;
                 }
                 
                 var id = await _patientRepository.CreateAsync(patient);
                 success = id > 0;
+                if (success)
+                {
+                    patient.Id = id;
+                    savedPatient = patient;
+                }
             }
             
             if (success)
             {
-                RequestClose?.Invoke(this, true);
+                RequestClose?.Invoke(this, savedPatient);
             }
             else
             {
@@ -146,18 +173,42 @@ public partial class PatientInputViewModel : ObservableValidator
     [RelayCommand]
     private void Cancel()
     {
-        RequestClose?.Invoke(this, false);
+        RequestClose?.Invoke(this, null);
     }
     
-    partial void OnCodeChanged(string value)
+    partial void OnNationalHealthInsuranceChanged(string value)
     {
-        ValidateProperty(value, nameof(Code));
+        ValidateProperty(value, nameof(NationalHealthInsurance));
+        UpdateValidationState();
+    }
+    
+    partial void OnSymbolChanged(string value)
+    {
+        ValidateProperty(value, nameof(Symbol));
+        UpdateValidationState();
+    }
+    
+    partial void OnNumberChanged(string value)
+    {
+        ValidateProperty(value, nameof(Number));
+        UpdateValidationState();
+    }
+    
+    partial void OnInsurerNameChanged(string value)
+    {
+        ValidateProperty(value, nameof(InsurerName));
         UpdateValidationState();
     }
     
     partial void OnNameChanged(string value)
     {
         ValidateProperty(value, nameof(Name));
+        UpdateValidationState();
+    }
+    
+    partial void OnFuriganaChanged(string value)
+    {
+        ValidateProperty(value, nameof(Furigana));
         UpdateValidationState();
     }
     

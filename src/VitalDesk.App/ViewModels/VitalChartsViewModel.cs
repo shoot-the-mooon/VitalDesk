@@ -15,14 +15,6 @@ using VitalDesk.Core.Repositories;
 
 namespace VitalDesk.App.ViewModels;
 
-
-public enum PeriodFilter
-{
-    Week,
-    Month,
-    All
-}
-
 public partial class VitalChartsViewModel : ViewModelBase
 {   
     private static readonly SKTypeface JpTypeface = SKTypeface.FromFamilyName(
@@ -46,13 +38,22 @@ public partial class VitalChartsViewModel : ViewModelBase
     private ObservableCollection<Axis> _combinedYAxes = new();
     
     [ObservableProperty]
-    private PeriodFilter _selectedPeriod = PeriodFilter.Week;
-    
-    [ObservableProperty]
     private bool _isLoading;
     
     [ObservableProperty]
     private string _noDataMessage = string.Empty;
+    
+    [ObservableProperty]
+    private int _currentWeekOffset = 0; // 0 = 今週、1 = 先週、-1 = 来週
+    
+    [ObservableProperty]
+    private string _currentPeriodText = string.Empty;
+    
+    [ObservableProperty]
+    private bool _canGoToPrevious = true;
+    
+    [ObservableProperty]
+    private bool _canGoToNext = false;
 
     public VitalChartsViewModel(Patient patient)
     {
@@ -65,13 +66,15 @@ public partial class VitalChartsViewModel : ViewModelBase
     
     private void InitializeAxes()
     {
-        // X軸（測定日時）- カスタムラベル軸
+        // X軸（測定日）- 全てのデータポイントに日付を表示
         var xAxis = new Axis
         {
-            Name = "測定日時",
+            Name = "測定日",
             NamePaint = new SolidColorPaint(SKColors.Black) { SKTypeface = JpTypeface },
             LabelsPaint = new SolidColorPaint(SKColors.Gray) { SKTypeface = JpTypeface },
-            Labeler = index => GetDateLabel((int)index)
+            Labeler = index => GetDateLabel((int)index),
+            MinStep = 1, // 各データポイントにラベルを表示
+            UnitWidth = 1 // データポイント間の間隔を1に設定
         };
         
         // 統一軸設定: 34°C=40bpm=0、40°C=160bpm=100の正規化スケール
@@ -140,10 +143,19 @@ public partial class VitalChartsViewModel : ViewModelBase
     }
     
     [RelayCommand]
-    private void ChangePeriod(PeriodFilter period)
+    private void GoToPreviousWeek()
     {
-        SelectedPeriod = period;
+        CurrentWeekOffset++;
         UpdateCharts();
+        UpdateNavigationButtons();
+    }
+    
+    [RelayCommand]
+    private void GoToNextWeek()
+    {
+        CurrentWeekOffset--;
+        UpdateCharts();
+        UpdateNavigationButtons();
     }
     
     [RelayCommand]
@@ -152,15 +164,15 @@ public partial class VitalChartsViewModel : ViewModelBase
         // テスト用のダミーデータを生成
         _allVitals.Clear();
         var random = new Random();
-        var baseDate = DateTime.Now.AddDays(-10);
+        var baseDate = DateTime.Now.AddDays(-21); // 3週間前から開始
         
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 21; i++)
         {
             _allVitals.Add(new Vital
             {
                 Id = i + 1,
                 PatientId = _patient.Id,
-                MeasuredAt = baseDate.AddDays(i),
+                MeasuredAt = baseDate.AddDays(i).AddHours(random.Next(6, 22)),
                 Temperature = 36.0 + random.NextDouble() * 2.0, // 36.0-38.0
                 Pulse = 60 + random.Next(40), // 60-100
                 Systolic = 110 + random.Next(40), // 110-150
@@ -170,39 +182,77 @@ public partial class VitalChartsViewModel : ViewModelBase
         }
         
         System.Diagnostics.Debug.WriteLine($"Generated {_allVitals.Count} test vitals");
+        CurrentWeekOffset = 0; // 今週に戻す
         UpdateCharts();
+        UpdateNavigationButtons();
     }
     
     private void UpdateCharts()
     {
-        var filteredVitals = GetFilteredVitals();
+        var filteredVitals = GetCurrentWeekVitals();
         
         if (!filteredVitals.Any())
         {
-            NoDataMessage = "選択された期間にデータがありません";
+            NoDataMessage = "この期間にデータがありません";
             ClearAllSeries();
+            UpdatePeriodText();
             return;
         }
         
         NoDataMessage = string.Empty;
-        
+        UpdatePeriodText();
         UpdateCombinedChart(filteredVitals);
     }
     
-    private List<Vital> GetFilteredVitals()
+    private List<Vital> GetCurrentWeekVitals()
     {
-        var cutoffDate = SelectedPeriod switch
-        {
-            PeriodFilter.Week => DateTime.Now.AddDays(-7),
-            PeriodFilter.Month => DateTime.Now.AddDays(-30),
-            PeriodFilter.All => DateTime.MinValue,
-            _ => DateTime.Now.AddDays(-7)
-        };
+        var now = DateTime.Now;
+        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday).Date; // 月曜日を週の開始とする
+        
+        // オフセットを適用
+        var targetStartOfWeek = startOfWeek.AddDays(-7 * CurrentWeekOffset);
+        var targetEndOfWeek = targetStartOfWeek.AddDays(7);
         
         return _allVitals
-            .Where(v => v.MeasuredAt >= cutoffDate)
+            .Where(v => v.MeasuredAt >= targetStartOfWeek && v.MeasuredAt < targetEndOfWeek)
             .OrderBy(v => v.MeasuredAt)
             .ToList();
+    }
+    
+    private void UpdatePeriodText()
+    {
+        var now = DateTime.Now;
+        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday).Date;
+        var targetStartOfWeek = startOfWeek.AddDays(-7 * CurrentWeekOffset);
+        var targetEndOfWeek = targetStartOfWeek.AddDays(6);
+        
+        if (CurrentWeekOffset == 0)
+        {
+            CurrentPeriodText = "今週";
+        }
+        else if (CurrentWeekOffset == 1)
+        {
+            CurrentPeriodText = "先週";
+        }
+        else if (CurrentWeekOffset > 1)
+        {
+            CurrentPeriodText = $"{CurrentWeekOffset}週間前";
+        }
+        else
+        {
+            CurrentPeriodText = $"{Math.Abs(CurrentWeekOffset)}週間後";
+        }
+        
+        CurrentPeriodText += $" ({targetStartOfWeek:MM/dd} - {targetEndOfWeek:MM/dd})";
+    }
+    
+    private void UpdateNavigationButtons()
+    {
+        // 未来の週には移動できない
+        CanGoToNext = CurrentWeekOffset > 0;
+        
+        // 過去の週は常に移動可能（データがある限り）
+        CanGoToPrevious = true;
     }
     
     private void UpdateCombinedChart(List<Vital> vitals)
@@ -225,32 +275,34 @@ public partial class VitalChartsViewModel : ViewModelBase
         
         CombinedSeries.Clear();
         
-        // 体温系列（左軸）- 常に追加
+        // 体温系列（左軸）- 直線で接続
         var tempSeries = new LineSeries<ObservableValue>
         {
             Values = temperatureData,
-            Name = "体温",
+            Name = "Temperature",
             Stroke = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface, StrokeThickness = 2 },
             Fill = null,
             GeometryStroke = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface, StrokeThickness = 2 },
             GeometryFill = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
             GeometrySize = 6,
-            ScalesYAt = 0 // 左軸（体温）
+            ScalesYAt = 0, // 左軸（体温）
+            LineSmoothness = 0 // 直線にする
         };
         CombinedSeries.Add(tempSeries);
         System.Diagnostics.Debug.WriteLine("Added temperature series");
         
-        // 脈拍系列（右軸）- 常に追加
+        // 脈拍系列（右軸）- 直線で接続
         var pulseSeries = new LineSeries<ObservableValue>
         {
             Values = pulseData,
-            Name = "脈拍",
+            Name = "Pulse",
             Stroke = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface, StrokeThickness = 2 },
             Fill = null,
             GeometryStroke = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface, StrokeThickness = 2 },
             GeometryFill = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
             GeometrySize = 6,
-            ScalesYAt = 1 // 右軸（脈拍）
+            ScalesYAt = 1, // 右軸（脈拍）
+            LineSmoothness = 0 // 直線にする
         };
         CombinedSeries.Add(pulseSeries);
         System.Diagnostics.Debug.WriteLine("Added pulse series");
@@ -261,33 +313,6 @@ public partial class VitalChartsViewModel : ViewModelBase
     private void ClearAllSeries()
     {
         CombinedSeries.Clear();
-    }
-    
-    private static string SafeDateTimeLabeler(double value)
-    {
-        try
-        {
-            // 値が有効な範囲内かチェック
-            var ticks = (long)value;
-            if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-            {
-                return "---"; // 無効な値の場合
-            }
-            
-            var dateTime = new DateTime(ticks);
-            
-            // 年が有効な範囲内かチェック
-            if (dateTime.Year < 1 || dateTime.Year > 9999)
-            {
-                return "---"; // 無効な年の場合
-            }
-            
-            return dateTime.ToString("MM/dd");
-        }
-        catch (Exception)
-        {
-            return "---"; // 変換失敗時
-        }
     }
     
     private string GetDateLabel(int index)

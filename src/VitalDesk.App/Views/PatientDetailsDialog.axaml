@@ -7,8 +7,8 @@
         x:Class="VitalDesk.App.Views.PatientDetailsDialog"
         x:DataType="vm:PatientDetailsViewModel"
         Title="患者詳細"
-        Width="850"
-        Height="750"
+        Width="950"
+        Height="650"
         MinHeight="500"
         MaxHeight="700"
         SizeToContent="Manual"
@@ -23,7 +23,7 @@
             <ui:SettingsExpander Header="患者基本情報を表示する" 
                                 IconSource="Contact"
                                 IsExpanded="False">
-                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" 
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" 
                       ColumnDefinitions="Auto,*,Auto,*" 
                       Margin="16">
                     <Grid.Styles>
@@ -42,6 +42,9 @@
                      <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="患者名："/>
                     <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Patient.Name}"/>
                                     
+                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="フリガナ："/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" Classes="value" Text="{Binding Patient.Furigana}"/>
+                                    
                     <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="生年月日："/>
                     <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" 
                                Text="{Binding Patient.BirthDate, StringFormat='{}{0:yyyy/MM/dd}'}"/>
@@ -58,23 +61,29 @@
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="患者コード："/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding Patient.Code}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="国保："/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding Patient.NationalHealthInsurance}"/>
 
-                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="label" Text="保険番号："/>
-                    <TextBlock Grid.Row="2" Grid.Column="3" Grid.ColumnSpan="3" Classes="value" 
-                               Text="{Binding Patient.InsuranceNo}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="label" Text="記号："/>
+                    <TextBlock Grid.Row="2" Grid.Column="3" Classes="value" Text="{Binding Patient.Symbol}"/>
                     
-                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="初診日："/>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" 
+                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="番号："/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" Text="{Binding Patient.Number}"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="2" Classes="label" Text="保険者名："/>
+                    <TextBlock Grid.Row="3" Grid.Column="3" Classes="value" 
+                               Text="{Binding Patient.InsurerName}"/>
+                    
+                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="初診日："/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" 
                                Text="{Binding Patient.FirstVisit, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                     
-                    <TextBlock Grid.Row="3" Grid.Column="2" Classes="label" Text="入院日："/>
-                    <TextBlock Grid.Row="3" Grid.Column="3" Classes="value" 
+                    <TextBlock Grid.Row="4" Grid.Column="2" Classes="label" Text="入院日："/>
+                    <TextBlock Grid.Row="4" Grid.Column="3" Classes="value" 
                                Text="{Binding Patient.Admission, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                     
-                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="退院日："/>
-                    <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" 
+                    <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="退院日："/>
+                    <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" 
                                Text="{Binding Patient.Discharge, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                 </Grid>
             </ui:SettingsExpander>
@@ -88,24 +97,23 @@
                             Classes="accent"
                             Background="Orange"/>
                     
-                    <ToggleButton Content="１週間"
-                                  IsChecked="{Binding ChartsViewModel.SelectedPeriod, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:PeriodFilter.Week}}"
-                                  Command="{Binding ChartsViewModel.ChangePeriodCommand}"
-                                  CommandParameter="{x:Static vm:PeriodFilter.Week}"/>
+                    <!-- 週間ナビゲーション -->
+                    <Button Content="◀ 前の週"
+                            Command="{Binding ChartsViewModel.GoToPreviousWeekCommand}"
+                            IsEnabled="{Binding ChartsViewModel.CanGoToPrevious}"/>
                     
-                    <ToggleButton Content="１ヶ月"
-                                  IsChecked="{Binding ChartsViewModel.SelectedPeriod, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:PeriodFilter.Month}}"
-                                  Command="{Binding ChartsViewModel.ChangePeriodCommand}"
-                                  CommandParameter="{x:Static vm:PeriodFilter.Month}"/>
+                    <TextBlock Text="{Binding ChartsViewModel.CurrentPeriodText}"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Margin="16,0"/>
                     
-                    <ToggleButton Content="全期間"
-                                  IsChecked="{Binding ChartsViewModel.SelectedPeriod, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static vm:PeriodFilter.All}}"
-                                  Command="{Binding ChartsViewModel.ChangePeriodCommand}"
-                                  CommandParameter="{x:Static vm:PeriodFilter.All}"/>
+                    <Button Content="次の週 ▶"
+                            Command="{Binding ChartsViewModel.GoToNextWeekCommand}"
+                            IsEnabled="{Binding ChartsViewModel.CanGoToNext}"/>
                     
-                    <Button Content="テストデータ生成" 
+                    <!-- <Button Content="テストデータ生成" 
                             Command="{Binding ChartsViewModel.GenerateTestDataCommand}"
-                            Background="Orange"/>
+                            Background="Orange"/> -->
                 </StackPanel>
                 
                 <!-- 体温・脈拍グラフ -->
@@ -213,8 +221,6 @@
                     </StackPanel>
                 </Border>
             </StackPanel>
-            
-
             
             <!-- 閉じるボタン -->
             <Button Content="閉じる"

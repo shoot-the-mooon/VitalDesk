@@ -246,11 +246,11 @@ public partial class SettingsViewModel : ViewModelBase
             var filePath = Path.Combine(exportFolder, fileName);
 
             var csv = new StringBuilder();
-            csv.AppendLine("患者コード,患者名,生年月日,年齢,保険番号,初診日,入院日,退院日");
+            csv.AppendLine("国保,記号,番号,保険者名,患者名,フリガナ,生年月日,年齢,初診日,入院日,退院日");
 
             foreach (var patient in patients)
             {
-                csv.AppendLine($"{patient.Code},{patient.Name},{patient.BirthDate:yyyy/MM/dd},{patient.Age},{patient.InsuranceNo},{patient.FirstVisit:yyyy/MM/dd},{patient.Admission:yyyy/MM/dd},{patient.Discharge:yyyy/MM/dd}");
+                csv.AppendLine($"{patient.NationalHealthInsurance},{patient.Symbol},{patient.Number},{patient.InsurerName},{patient.Name},{patient.Furigana},{patient.BirthDate:yyyy/MM/dd},{patient.Age},{patient.FirstVisit:yyyy/MM/dd},{patient.Admission:yyyy/MM/dd},{patient.Discharge:yyyy/MM/dd}");
             }
 
             await File.WriteAllTextAsync(filePath, csv.ToString(), Encoding.UTF8);

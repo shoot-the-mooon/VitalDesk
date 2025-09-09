@@ -53,7 +53,7 @@ public class DatabaseCleanupService
                 if (needsUpdate)
                 {
                     await _patientRepository.UpdateAsync(patient);
-                    System.Diagnostics.Debug.WriteLine($"Cleaned up patient {patient.Code} dates");
+                    System.Diagnostics.Debug.WriteLine($"Cleaned up patient {patient.NationalHealthInsurance} dates");
                 }
             }
         }

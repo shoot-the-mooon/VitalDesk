@@ -1,6 +1,7 @@
 using System;
 using Avalonia.Controls;
 using VitalDesk.App.ViewModels;
+using VitalDesk.Core.Models;
 
 namespace VitalDesk.App.Views;
 
@@ -17,9 +18,9 @@ public partial class PatientInputDialog : Window
         viewModel.RequestClose += OnRequestClose;
     }
     
-    private void OnRequestClose(object? sender, bool saved)
+    private void OnRequestClose(object? sender, Patient? patient)
     {
-        Close(saved);
+        Close(patient);
     }
     
     protected override void OnClosed(EventArgs e)

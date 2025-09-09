@@ -1,0 +1,7 @@
+    private async Task InitializeAsync()
+    {
+        // 患者データを読み込み
+        await LoadPatientsAsync();
+        await LoadDischargedPatientsAsync();
+        await LoadTransferredPatientsAsync();
+    }

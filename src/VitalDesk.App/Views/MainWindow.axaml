@@ -17,32 +17,7 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <ui:NavigationView x:Name="NavigationView"
-                       IsPaneToggleButtonVisible="True"
-                       IsSettingsVisible="True"
-                       PaneDisplayMode="LeftCompact"
-                       PaneTitle="VitalDesk">
-        
-        <ui:NavigationView.MenuItems>
-            <ui:NavigationViewItem Content="Patients" 
-                                   Tag="patients"
-                                   IsSelected="True"
-                                   IconSource="People"/>
-            
-            <ui:NavigationViewItem Content="Reports" 
-                                   Tag="reports"
-                                   IconSource="Document"/>
-        </ui:NavigationView.MenuItems>
-        
-        <ui:NavigationView.FooterMenuItems>
-            <ui:NavigationViewItem Content="Settings" 
-                                   Tag="settings"
-                                   IconSource="Settings"/>
-        </ui:NavigationView.FooterMenuItems>
-        
-        <!-- Default content - Main patient view -->
-        <views:MainView x:Name="MainContent"/>
-        
-    </ui:NavigationView>
+    <!-- Main patient view -->
+    <views:MainView x:Name="MainContent"/>
 
 </Window>

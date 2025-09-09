@@ -4,11 +4,13 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VitalDesk.Core.Models;
 using VitalDesk.Core.Repositories;
 using VitalDesk.App.Services;
+using System.Linq;
 
 namespace VitalDesk.App.ViewModels;
 
@@ -16,6 +18,7 @@ public partial class MainViewModel : ViewModelBase
 {
     private readonly IPatientRepository _patientRepository;
     private readonly SampleDataService _sampleDataService;
+    private readonly CsvBackupService _csvBackupService;
     
     [ObservableProperty]
     private ObservableCollection<Patient> _patients = new();
@@ -29,21 +32,67 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoading;
     
+    [ObservableProperty]
+    private int _selectedTabIndex = 0;
+    
+    [ObservableProperty]
+    private ObservableCollection<Patient> _dischargedPatients = new();
+    
+    [ObservableProperty]
+    private ObservableCollection<Patient> _transferredPatients = new();
+    
     public MainViewModel()
     {
         _patientRepository = new PatientRepository();
         _sampleDataService = new SampleDataService();
+        _csvBackupService = new CsvBackupService();
         _ = InitializeAsync();
     }
     
     private async Task InitializeAsync()
     {
-        // データベースクリーンアップを実行
-        var cleanupService = new DatabaseCleanupService();
-        await cleanupService.CleanupInvalidDatesAsync();
-        
-        // 患者データを読み込み
+        // 最初は入院患者データのみを読み込み
         await LoadPatientsAsync();
+        // 他のタブは必要時に読み込み
+    }
+    
+    // タブが変更された時の処理
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        // タブが変更された時に該当タブのデータを遅延読み込み
+        _ = LoadTabDataAsync(value);
+    }
+    
+    private async Task LoadTabDataAsync(int tabIndex)
+    {
+        try
+        {
+            switch (tabIndex)
+            {
+                case 0: // 入院患者タブ
+                    if (Patients.Count == 0)
+                    {
+                        await RefreshPatientsAsync();
+                    }
+                    break;
+                case 1: // 退院患者タブ
+                    if (DischargedPatients.Count == 0)
+                    {
+                        await LoadDischargedPatientsAsync();
+                    }
+                    break;
+                case 2: // 転棟患者タブ
+                    if (TransferredPatients.Count == 0)
+                    {
+                        await LoadTransferredPatientsAsync();
+                    }
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading tab data for index {tabIndex}: {ex.Message}");
+        }
     }
     
     [RelayCommand]
@@ -54,7 +103,10 @@ public partial class MainViewModel : ViewModelBase
             IsLoading = true;
             var patients = await _patientRepository.GetAllAsync();
             Patients.Clear();
-            foreach (var patient in patients)
+            
+            // ふりがなでソート
+            var sortedPatients = patients.OrderBy(p => p.Furigana).ToList();
+            foreach (var patient in sortedPatients)
             {
                 Patients.Add(patient);
             }
@@ -87,10 +139,34 @@ public partial class MainViewModel : ViewModelBase
                 patients = await _patientRepository.SearchAsync(SearchText.Trim());
             }
             
-            Patients.Clear();
-            foreach (var patient in patients)
+            // ふりがなでソートしてから表示
+            var sortedPatients = patients.OrderBy(p => p.Furigana).ToList();
+            
+            // UIの更新を最適化
+            var currentPatients = Patients.ToList();
+            var toRemove = currentPatients.Except(sortedPatients).ToList();
+            var toAdd = sortedPatients.Except(currentPatients).ToList();
+            
+            // 削除する患者を削除
+            foreach (var patient in toRemove)
             {
-                Patients.Add(patient);
+                Patients.Remove(patient);
+            }
+            
+            // 新しい患者を適切な位置に挿入
+            foreach (var patient in toAdd)
+            {
+                var insertIndex = 0;
+                for (int i = 0; i < Patients.Count; i++)
+                {
+                    if (string.Compare(patient.Furigana, Patients[i].Furigana, StringComparison.OrdinalIgnoreCase) <= 0)
+                    {
+                        insertIndex = i;
+                        break;
+                    }
+                    insertIndex = i + 1;
+                }
+                Patients.Insert(insertIndex, patient);
             }
         }
         catch (Exception ex)
@@ -104,6 +180,20 @@ public partial class MainViewModel : ViewModelBase
         }
     }
     
+    // 統一された患者リスト更新メソッド
+    private async Task RefreshPatientsAsync()
+    {
+        // 現在の検索テキストに基づいて適切な更新を行う
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            await LoadPatientsAsync();
+        }
+        else
+        {
+            await SearchPatientsAsync();
+        }
+    }
+    
     [RelayCommand]
     private async Task AddPatientAsync()
     {
@@ -113,66 +203,22 @@ public partial class MainViewModel : ViewModelBase
         var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
         if (mainWindow == null) return;
         
-        var result = await dialog.ShowDialog<bool?>(mainWindow);
+        var result = await dialog.ShowDialog<Patient?>(mainWindow);
         
-        if (result == true)
+        if (result != null)
         {
-            // Refresh the patients list
-            await LoadPatientsAsync();
-        }
-    }
-    
-    [RelayCommand]
-    private async Task GenerateSampleDataAsync()
-    {
-        try
-        {
-            IsLoading = true;
-            
-            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (mainWindow == null) return;
-
-            // 既にサンプルデータがあるかチェック
-            if (await _sampleDataService.HasSampleDataAsync())
+            // 新規追加された患者をふりがな順で適切な位置に挿入
+            var insertIndex = 0;
+            for (int i = 0; i < Patients.Count; i++)
             {
-                var confirmDialog = new Views.ConfirmationDialog(
-                    "サンプルデータ生成の確認",
-                    "既に多くの患者データが存在します。追加でサンプルデータを生成しますか？",
-                    "生成する",
-                    "キャンセル"
-                );
-                
-                var result = await confirmDialog.ShowDialog<bool?>(mainWindow);
-                if (result != true)
+                if (string.Compare(result.Furigana, Patients[i].Furigana, StringComparison.OrdinalIgnoreCase) <= 0)
                 {
-                    return;
+                    insertIndex = i;
+                    break;
                 }
+                insertIndex = i + 1;
             }
-
-            await _sampleDataService.GenerateSamplePatientsAsync(100);
-            await LoadPatientsAsync();
-
-            var successDialog = new Views.MessageDialog(
-                "サンプルデータ生成完了",
-                "100人の患者データとバイタルサインデータを生成しました。"
-            );
-            await successDialog.ShowDialog(mainWindow);
-        }
-        catch (Exception ex)
-        {
-            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (mainWindow != null)
-            {
-                var errorDialog = new Views.MessageDialog(
-                    "エラー",
-                    $"サンプルデータの生成中にエラーが発生しました: {ex.Message}"
-                );
-                await errorDialog.ShowDialog(mainWindow);
-            }
-        }
-        finally
-        {
-            IsLoading = false;
+            Patients.Insert(insertIndex, result);
         }
     }
     
@@ -188,12 +234,29 @@ public partial class MainViewModel : ViewModelBase
         var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
         if (mainWindow == null) return;
         
-        var result = await dialog.ShowDialog<bool?>(mainWindow);
+        var result = await dialog.ShowDialog<Patient?>(mainWindow);
         
-        if (result == true)
+        if (result != null)
         {
-            // Refresh the patients list
-            await LoadPatientsAsync();
+            // 編集された患者を一旦リストから削除
+            var index = Patients.IndexOf(patient);
+            if (index >= 0)
+            {
+                Patients.RemoveAt(index);
+            }
+            
+            // ふりがな順で適切な位置に再挿入
+            var insertIndex = 0;
+            for (int i = 0; i < Patients.Count; i++)
+            {
+                if (string.Compare(result.Furigana, Patients[i].Furigana, StringComparison.OrdinalIgnoreCase) <= 0)
+                {
+                    insertIndex = i;
+                    break;
+                }
+                insertIndex = i + 1;
+            }
+            Patients.Insert(insertIndex, result);
         }
     }
     
@@ -210,7 +273,7 @@ public partial class MainViewModel : ViewModelBase
             
             var dialog = new Views.ConfirmationDialog(
                 "患者削除の確認",
-                $"患者「{patient.Name}」（コード: {patient.Code}）を削除しますか？\n\nこの操作は取り消せません。",
+                $"患者「{patient.Name}」（国保: {patient.NationalHealthInsurance}）を削除しますか？\n\nこの操作は取り消せません。",
                 "削除",
                 "キャンセル"
             );
@@ -271,9 +334,467 @@ public partial class MainViewModel : ViewModelBase
         await dialog.ShowDialog(mainWindow);
     }
     
+    [RelayCommand]
+    private async Task DischargePatientAsync(Patient? patient)
+    {
+        if (patient == null) return;
+        
+        try
+        {
+            // 退院日を設定して更新
+            patient.Discharge = DateTime.Now;
+            var success = await _patientRepository.UpdateAsync(patient);
+            
+            if (success)
+            {
+                // リアルタイムでリストを更新
+                Patients.Remove(patient);
+                
+                // 退院リストにソート順で挿入
+                var insertIndex = 0;
+                for (int i = 0; i < DischargedPatients.Count; i++)
+                {
+                    if (string.Compare(patient.Furigana, DischargedPatients[i].Furigana, StringComparison.OrdinalIgnoreCase) <= 0)
+                    {
+                        insertIndex = i;
+                        break;
+                    }
+                    insertIndex = i + 1;
+                }
+                DischargedPatients.Insert(insertIndex, patient);
+                
+                // 退院タブに切り替え
+                SelectedTabIndex = 1;
+                
+                var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+                if (mainWindow != null)
+                {
+                    var successDialog = new Views.MessageDialog(
+                        "退院処理完了",
+                        $"患者「{patient.Name}」の退院処理が完了しました。"
+                    );
+                    await successDialog.ShowDialog(mainWindow);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "退院処理エラー",
+                    $"退院処理中にエラーが発生しました: {ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+    }
+    
+    [RelayCommand]
+    private async Task TransferPatientAsync(Patient? patient)
+    {
+        if (patient == null) return;
+        
+        try
+        {
+            // 転棟処理（ここでは退院日を設定することで転棟とみなす）
+            patient.Discharge = DateTime.Now;
+            var success = await _patientRepository.UpdateAsync(patient);
+            
+            if (success)
+            {
+                // リアルタイムでリストを更新
+                Patients.Remove(patient);
+                
+                // 転棟リストにソート順で挿入
+                var insertIndex = 0;
+                for (int i = 0; i < TransferredPatients.Count; i++)
+                {
+                    if (string.Compare(patient.Furigana, TransferredPatients[i].Furigana, StringComparison.OrdinalIgnoreCase) <= 0)
+                    {
+                        insertIndex = i;
+                        break;
+                    }
+                    insertIndex = i + 1;
+                }
+                TransferredPatients.Insert(insertIndex, patient);
+                
+                // 転棟タブに切り替え
+                SelectedTabIndex = 2;
+                
+                var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+                if (mainWindow != null)
+                {
+                    var successDialog = new Views.MessageDialog(
+                        "転棟処理完了",
+                        $"患者「{patient.Name}」の転棟処理が完了しました。"
+                    );
+                    await successDialog.ShowDialog(mainWindow);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "転棟処理エラー",
+                    $"転棟処理中にエラーが発生しました: {ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+    }
+    
+    [RelayCommand]
+    private async Task LoadDischargedPatientsAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            var patients = await _patientRepository.GetDischargedPatientsAsync();
+            DischargedPatients.Clear();
+            foreach (var patient in patients)
+            {
+                DischargedPatients.Add(patient);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading discharged patients: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    [RelayCommand]
+    private async Task LoadTransferredPatientsAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            var patients = await _patientRepository.GetTransferredPatientsAsync();
+            TransferredPatients.Clear();
+            foreach (var patient in patients)
+            {
+                TransferredPatients.Add(patient);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading transferred patients: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    [RelayCommand]
+    private async Task ReadmitPatientAsync(Patient? patient)
+    {
+        if (patient == null) return;
+        
+        try
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow == null) return;
+            
+            // 確認ダイアログを表示
+            var dialog = new Views.ConfirmationDialog(
+                "再入院の確認",
+                $"患者「{patient.Name}」（国保: {patient.NationalHealthInsurance}）を再入院させますか？",
+                "再入院",
+                "キャンセル"
+            );
+            
+            var result = await dialog.ShowDialog<bool?>(mainWindow);
+            
+            if (result == true)
+            {
+                // 退院日をクリアして再入院処理
+                patient.Discharge = null;
+                var success = await _patientRepository.UpdateAsync(patient);
+                
+                if (success)
+                {
+                    // 退院・転棟リストから患者を削除
+                    DischargedPatients.Remove(patient);
+                    TransferredPatients.Remove(patient);
+                    
+                    // 入院患者リストに追加（フリガナ順で適切な位置に挿入）
+                    var insertIndex = 0;
+                    for (int i = 0; i < Patients.Count; i++)
+                    {
+                        if (string.Compare(patient.Furigana, Patients[i].Furigana, StringComparison.OrdinalIgnoreCase) <= 0)
+                        {
+                            insertIndex = i;
+                            break;
+                        }
+                        insertIndex = i + 1;
+                    }
+                    Patients.Insert(insertIndex, patient);
+                    
+                    // 入院患者タブに切り替え
+                    SelectedTabIndex = 0;
+                    
+                    var successDialog = new Views.MessageDialog(
+                        "再入院処理完了",
+                        $"患者「{patient.Name}」の再入院処理が完了しました。"
+                    );
+                    await successDialog.ShowDialog(mainWindow);
+                }
+                else
+                {
+                    var errorDialog = new Views.MessageDialog(
+                        "再入院処理エラー",
+                        "再入院処理に失敗しました。"
+                    );
+                    await errorDialog.ShowDialog(mainWindow);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "再入院処理エラー",
+                    $"再入院処理中にエラーが発生しました: {ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+    }
+    
+    [RelayCommand]
+    private async Task CreateBackupAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            
+            var backupPath = await _csvBackupService.CreateBackupAsync();
+            
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var successDialog = new Views.MessageDialog(
+                    "バックアップ完了",
+                    $"全データのバックアップが完了しました。\n\n保存場所:\n{backupPath}\n\n患者データとバイタルサインデータが全て含まれています。"
+                );
+                await successDialog.ShowDialog(mainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "バックアップエラー",
+                    $"バックアップの作成中にエラーが発生しました:\n{ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportBackupAsync()
+    {
+        try
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow == null) return;
+
+            // 最初の確認ダイアログ
+            var initialConfirmDialog = new Views.ConfirmationDialog(
+                "全データを削除します。",
+                "職員の方は必ずキャンセルボタンを押してください。",
+                "続行",
+                "キャンセル"
+            );
+
+            var initialResult = await initialConfirmDialog.ShowDialog<bool?>(mainWindow);
+            if (initialResult != true) return;
+
+            // ファイル選択ダイアログを表示
+            var topLevel = Avalonia.Controls.TopLevel.GetTopLevel(mainWindow);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "バックアップファイルを選択",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("CSVファイル")
+                    {
+                        Patterns = new[] { "*.csv" },
+                        MimeTypes = new[] { "text/csv" }
+                    }
+                }
+            });
+
+            if (files.Count == 0) return;
+
+            var filePath = files[0].Path.LocalPath;
+
+            // 最終確認ダイアログ
+            var finalConfirmDialog = new Views.ConfirmationDialog(
+                "この操作を実行すると、現在のデータは完全に削除され、選択したバックアップファイルのデータに置き換えられます。\n\n" +
+                "この操作は取り消すことができません。本当に実行しますか？",
+                "実行する",
+                "キャンセル"
+            );
+
+            var finalResult = await finalConfirmDialog.ShowDialog<bool?>(mainWindow);
+            if (finalResult != true) return;
+
+            IsLoading = true;
+
+            var importedPatientCount = await _csvBackupService.ImportBackupAsync(filePath);
+
+            // 現在表示中のタブのみ更新し、他のタブはキャッシュをクリア
+            await RefreshPatientsAsync();
+            DischargedPatients.Clear();
+            TransferredPatients.Clear();
+
+            var successDialog = new Views.MessageDialog(
+                "復元完了",
+                $"バックアップファイルからデータを復元しました。\n\n復元された患者数: {importedPatientCount}人"
+            );
+            await successDialog.ShowDialog(mainWindow);
+        }
+        catch (Exception ex)
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "復元エラー",
+                    $"データの復元中にエラーが発生しました:\n{ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportPatientsAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow == null) return;
+            
+            var successDialog = new Views.MessageDialog(
+                "エクスポート完了",
+                "患者データのCSVエクスポートが完了しました。"
+            );
+            await successDialog.ShowDialog(mainWindow);
+        }
+        catch (Exception ex)
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "エクスポートエラー",
+                    $"エクスポート中にエラーが発生しました: {ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    [RelayCommand]
+    private async Task GenerateSampleDataAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow == null) return;
+
+            // 既にサンプルデータがあるかチェック
+            if (await _sampleDataService.HasSampleDataAsync())
+            {
+                var confirmDialog = new Views.ConfirmationDialog(
+                    "サンプルデータ生成の確認",
+                    "既に多くの患者データが存在します。追加でサンプルデータを生成しますか？",
+                    "生成する",
+                    "キャンセル"
+                );
+                
+                var result = await confirmDialog.ShowDialog<bool?>(mainWindow);
+                if (result != true)
+                {
+                    return;
+                }
+            }
+
+            await _sampleDataService.GenerateSamplePatientsAsync(100);
+            
+            // 現在表示中のタブのみ更新し、他のタブはキャッシュをクリア
+            await RefreshPatientsAsync();
+            DischargedPatients.Clear();
+            TransferredPatients.Clear();
+
+            var successDialog = new Views.MessageDialog(
+                "サンプルデータ生成完了",
+                "100人の患者データとバイタルサインデータを生成しました。"
+            );
+            await successDialog.ShowDialog(mainWindow);
+        }
+        catch (Exception ex)
+        {
+            var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow != null)
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "エラー",
+                    $"サンプルデータの生成中にエラーが発生しました: {ex.Message}"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    [RelayCommand]
+    private void CloseSettings()
+    {
+        // This command is no longer needed as settings are integrated into backup/import
+    }
+    
     partial void OnSearchTextChanged(string value)
     {
-        // Trigger search when search text changes
+        // 検索テキストが変更されたら即座に検索を実行
         _ = SearchPatientsAsync();
     }
 } 

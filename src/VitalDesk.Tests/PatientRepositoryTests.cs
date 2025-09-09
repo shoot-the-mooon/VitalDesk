@@ -28,10 +28,13 @@ public class PatientRepositoryTests
         // Arrange
         var patient = new Patient
         {
-            Code = "P001",
+            NationalHealthInsurance = "P001",
             Name = "Test Patient",
+            Furigana = "テストカンジャ",
             BirthDate = new DateTime(1990, 1, 1),
-            InsuranceNo = "INS001"
+            Symbol = "SYM001",
+            Number = "NUM001",
+            InsurerName = "Test Insurance"
         };
 
         // Act
@@ -47,8 +50,9 @@ public class PatientRepositoryTests
         // Arrange
         var patient = new Patient
         {
-            Code = "P002",
+            NationalHealthInsurance = "P002",
             Name = "Test Patient 2",
+            Furigana = "テストカンジャ2",
             BirthDate = new DateTime(1985, 5, 15)
         };
         var id = await _repository.CreateAsync(patient);
@@ -58,7 +62,7 @@ public class PatientRepositoryTests
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result!.Code, Is.EqualTo("P002"));
+        Assert.That(result!.NationalHealthInsurance, Is.EqualTo("P002"));
         Assert.That(result.Name, Is.EqualTo("Test Patient 2"));
     }
 
@@ -68,8 +72,9 @@ public class PatientRepositoryTests
         // Arrange
         var patient = new Patient
         {
-            Code = "P003",
+            NationalHealthInsurance = "P003",
             Name = "Test Patient 3",
+            Furigana = "テストカンジャ3",
             BirthDate = new DateTime(1992, 12, 25)
         };
         await _repository.CreateAsync(patient);
@@ -86,9 +91,9 @@ public class PatientRepositoryTests
     public async Task SearchAsync_ShouldReturnMatchingPatients_WhenSearchTermMatches()
     {
         // Arrange
-        var patient1 = new Patient { Code = "P004", Name = "John Doe" };
-        var patient2 = new Patient { Code = "P005", Name = "Jane Smith" };
-        var patient3 = new Patient { Code = "P006", Name = "John Johnson" };
+        var patient1 = new Patient { NationalHealthInsurance = "P004", Name = "John Doe", Furigana = "ジョンドウ" };
+        var patient2 = new Patient { NationalHealthInsurance = "P005", Name = "Jane Smith", Furigana = "ジェーンスミス" };
+        var patient3 = new Patient { NationalHealthInsurance = "P006", Name = "John Johnson", Furigana = "ジョンジョンソン" };
         
         await _repository.CreateAsync(patient1);
         await _repository.CreateAsync(patient2);
@@ -108,14 +113,16 @@ public class PatientRepositoryTests
         // Arrange
         var patient = new Patient
         {
-            Code = "P007",
+            NationalHealthInsurance = "P007",
             Name = "Original Name",
+            Furigana = "オリジナル",
             BirthDate = new DateTime(1980, 1, 1)
         };
         var id = await _repository.CreateAsync(patient);
         
         patient.Id = id;
         patient.Name = "Updated Name";
+        patient.Furigana = "アップデート";
 
         // Act
         var result = await _repository.UpdateAsync(patient);
@@ -133,8 +140,9 @@ public class PatientRepositoryTests
         // Arrange
         var patient = new Patient
         {
-            Code = "P008",
-            Name = "To Be Deleted"
+            NationalHealthInsurance = "P008",
+            Name = "To Be Deleted",
+            Furigana = "サクジョ"
         };
         var id = await _repository.CreateAsync(patient);
 
@@ -154,8 +162,9 @@ public class PatientRepositoryTests
         // Arrange
         var patient = new Patient
         {
-            Code = "P009",
-            Name = "Existing Patient"
+            NationalHealthInsurance = "P009",
+            Name = "Existing Patient",
+            Furigana = "ソンザイ"
         };
         await _repository.CreateAsync(patient);
 

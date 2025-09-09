@@ -4,8 +4,8 @@
         xmlns:vm="using:VitalDesk.App.ViewModels"
         x:Class="VitalDesk.App.Views.VitalInputDialog"
         x:DataType="vm:VitalInputViewModel"
-        Width="800"
-        Height="730"
+        Width="620"
+        Height="650"
         MinHeight="500"
         MaxHeight="750"
         SizeToContent="Manual"
@@ -15,26 +15,16 @@
     <ScrollViewer Margin="10" 
                   VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
-                  AllowAutoHide="False">
+                  AllowAutoHide="True">
         <StackPanel Spacing="20">
             
              <!-- 測定日時情報 -->
             
-                <StackPanel Spacing="12">
-                    <TextBlock Text="測定日時"
-                               FontWeight="SemiBold"
-                               FontSize="18"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="{Binding MeasuredAtFullWidthString}"
-                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                               FontSize="20"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Center"/>
-                               
+                <StackPanel Spacing="5" MaxWidth="400" HorizontalAlignment="Center">           
                     <!-- 日付選択 アコーディオン -->
-                    <ui:SettingsExpander Header="日付を変更する"
+                    <ui:SettingsExpander Header="{Binding MeasuredAtFullWidthString}"
                                         IsExpanded="False">
-                        <StackPanel Spacing="12" Margin="0,12,0,0">
+                        <StackPanel Spacing="12" Margin="0,12,0,12">
                             <!-- カレンダー -->
                             <Calendar SelectedDate="{Binding MeasuredAtDate}"
                                      FirstDayOfWeek="Sunday"

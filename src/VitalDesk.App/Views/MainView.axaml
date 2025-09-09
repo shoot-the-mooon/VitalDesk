@@ -30,86 +30,365 @@
                    Width="200"
                    VerticalAlignment="Center"/>
           
-          <Button Content="サンプルデータ生成" 
+          <!-- <Button Content="サンプルデータ生成" 
                   Command="{Binding GenerateSampleDataCommand}"
                   IsEnabled="{Binding !IsLoading}"
                   VerticalAlignment="Center"
-                  ToolTip.Tip="100人の患者データとバイタルサインデータを生成します"/>
+                  ToolTip.Tip="100人の患者データとバイタルサインデータを生成します"/> -->
           
           <Button Content="患者追加" 
                   Command="{Binding AddPatientCommand}"
                   Classes="accent"
                   VerticalAlignment="Center"/>
+          
+          <Button Content="バックアップ" 
+                  Command="{Binding CreateBackupCommand}"
+                  IsEnabled="{Binding !IsLoading}"
+                  Background="Green"
+                  Foreground="White"
+                  VerticalAlignment="Center"
+                  ToolTip.Tip="全データをCSVファイルにバックアップします（デスクトップに保存）"/>
         </StackPanel>
       </Grid>
     </Border>
 
     <!-- Content -->
     <Grid Grid.Row="1" Margin="16">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="Auto"/>
-      </Grid.RowDefinitions>
-
-      <!-- Patients DataGrid -->
-      <DataGrid Grid.Row="0"
-                ItemsSource="{Binding Patients}"
-                SelectedItem="{Binding SelectedPatient}"
-                AutoGenerateColumns="False"
-                IsReadOnly="True"
-                GridLinesVisibility="Horizontal"
-                HeadersVisibility="Column">
+      <TabControl SelectedIndex="{Binding SelectedTabIndex}">
         
-        <DataGrid.Columns>
-          <DataGridTextColumn Header="患者コード" 
-                              Binding="{Binding Code}" 
-                              Width="120"/>
-          
-          <DataGridTextColumn Header="患者名" 
-                              Binding="{Binding Name}" 
-                              Width="200"/>
-          
-          <DataGridTextColumn Header="年齢" 
-                              Binding="{Binding Age}" 
-                              Width="80"/>
-          
-          <DataGridTextColumn Header="入院日" 
-                              Binding="{Binding Admission, StringFormat=yyyy/MM/dd}" 
-                              Width="120"/>
-          
-          <DataGridTemplateColumn Header="操作" Width="200">
-            <DataGridTemplateColumn.CellTemplate>
-              <DataTemplate>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Content="詳細" 
-                          Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).ViewPatientDetailsCommand}"
-                          CommandParameter="{Binding}"
-                          Classes="accent"
-                          FontSize="12"
-                          Padding="8,4"/>
-                  
-                  <Button Content="編集" 
-                          Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).EditPatientCommand}"
-                          CommandParameter="{Binding}"
-                          FontSize="12"
-                          Padding="8,4"/>
-                  
-                  <Button Content="削除" 
-                          Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).DeletePatientCommand}"
-                          CommandParameter="{Binding}"
-                          Classes="danger"
-                          FontSize="12"
-                          Padding="8,4"/>
+        <!-- 入院患者タブ -->
+        <TabItem Header="入院患者">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Patients DataGrid -->
+            <DataGrid Grid.Row="0"
+                      ItemsSource="{Binding Patients}"
+                      SelectedItem="{Binding SelectedPatient}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserSortColumns="False"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column">
+              
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="国保" 
+                                    Binding="{Binding NationalHealthInsurance}" 
+                                    Width="100"/>
+                
+                <DataGridTextColumn Header="記号" 
+                                    Binding="{Binding Symbol}" 
+                                    Width="80"/>
+                
+                <DataGridTextColumn Header="番号" 
+                                    Binding="{Binding Number}" 
+                                    Width="80"/>
+                
+                <DataGridTextColumn Header="保険者名" 
+                                    Binding="{Binding InsurerName}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="患者名" 
+                                    Binding="{Binding Name}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="フリガナ" 
+                                    Binding="{Binding Furigana}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="年齢" 
+                                    Binding="{Binding Age}" 
+                                    Width="60"/>
+                
+                <DataGridTextColumn Header="入院日" 
+                                    Binding="{Binding Admission, StringFormat=yyyy/MM/dd}" 
+                                    Width="100"/>
+                
+                <DataGridTemplateColumn Header="操作" Width="300">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="詳細" 
+                                Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).ViewPatientDetailsCommand}"
+                                CommandParameter="{Binding}"
+                                Classes="accent"
+                                FontSize="12"
+                                Padding="8,4"/>
+                        
+                        <Button Content="編集" 
+                                Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).EditPatientCommand}"
+                                CommandParameter="{Binding}"
+                                FontSize="12"
+                                Padding="8,4"/>
+                        
+                        <Button Content="退院" 
+                                Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).DischargePatientCommand}"
+                                CommandParameter="{Binding}"
+                                Background="Green"
+                                Foreground="White"
+                                FontSize="12"
+                                Padding="8,4"/>
+                        
+                        <Button Content="転棟" 
+                                Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).TransferPatientCommand}"
+                                CommandParameter="{Binding}"
+                                Background="Orange"
+                                Foreground="White"
+                                FontSize="12"
+                                Padding="8,4"/>
+                        
+                        <Button Content="削除" 
+                                Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).DeletePatientCommand}"
+                                CommandParameter="{Binding}"
+                                Classes="danger"
+                                FontSize="12"
+                                Padding="8,4"/>
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Status bar -->
+            <Border Grid.Row="1" 
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    Padding="8"
+                    Margin="0,8,0,0">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                  <TextBlock Text="入院患者数："
+                           FontSize="12"
+                           FontFamily="{StaticResource JapaneseUIFont}"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"/>
+                  <TextBlock Text="{Binding Patients.Count}"
+                           FontSize="12"
+                           FontFamily="{StaticResource MonospaceFont}"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,5.5,0,0"/>
+                  <TextBlock Text="人"
+                           FontSize="12"
+                           FontFamily="{StaticResource JapaneseUIFont}"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"/>
                 </StackPanel>
-              </DataTemplate>
-            </DataGridTemplateColumn.CellTemplate>
-          </DataGridTemplateColumn>
-        </DataGrid.Columns>
-      </DataGrid>
+                
+                <!-- 復元ボタン -->
+                <Button Grid.Column="1"
+                        Content="データ復元"
+                        Command="{Binding ImportBackupCommand}"
+                        IsEnabled="{Binding !IsLoading}"
+                        Background="Transparent"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        FontSize="12"
+                        Padding="8,4"
+                        VerticalAlignment="Center"
+                        ToolTip.Tip="CSVバックアップファイルからデータを復元します"/>
+              </Grid>
+            </Border>
+          </Grid>
+        </TabItem>
+        
+        <!-- 退院患者タブ -->
+        <TabItem Header="退院患者">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Discharged Patients DataGrid -->
+            <DataGrid Grid.Row="0"
+                      ItemsSource="{Binding DischargedPatients}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column">
+              
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="国保" 
+                                    Binding="{Binding NationalHealthInsurance}" 
+                                    Width="100"/>
+                
+                <DataGridTextColumn Header="記号" 
+                                    Binding="{Binding Symbol}" 
+                                    Width="80"/>
+                
+                <DataGridTextColumn Header="番号" 
+                                    Binding="{Binding Number}" 
+                                    Width="80"/>
+                
+                <DataGridTextColumn Header="保険者名" 
+                                    Binding="{Binding InsurerName}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="患者名" 
+                                    Binding="{Binding Name}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="フリガナ" 
+                                    Binding="{Binding Furigana}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="年齢" 
+                                    Binding="{Binding Age}" 
+                                    Width="60"/>
+                
+                <DataGridTextColumn Header="退院日" 
+                                    Binding="{Binding Discharge, StringFormat=yyyy/MM/dd}" 
+                                    Width="100"/>
+                
+                <DataGridTemplateColumn Header="操作" Width="120">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="再入院" 
+                                Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).ReadmitPatientCommand}"
+                                CommandParameter="{Binding}"
+                                Background="Blue"
+                                Foreground="White"
+                                FontSize="12"
+                                Padding="8,4"/>
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+            
+            <!-- Status bar -->
+            <Border Grid.Row="1" 
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    Padding="8"
+                    Margin="0,8,0,0">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock Text="退院患者数："
+                           FontSize="12"
+                           FontFamily="{StaticResource JapaneseUIFont}"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding DischargedPatients.Count}"
+                           FontSize="12"
+                           FontFamily="{StaticResource MonospaceFont}"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,5.5,0,0"/>
+                <TextBlock Text="人"
+                           FontSize="12"
+                           FontFamily="{StaticResource JapaneseUIFont}"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </Border>
+          </Grid>
+        </TabItem>
+        
+        <!-- 転棟患者タブ -->
+        <TabItem Header="転棟患者">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Transferred Patients DataGrid -->
+            <DataGrid Grid.Row="0"
+                      ItemsSource="{Binding TransferredPatients}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column">
+              
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="国保" 
+                                    Binding="{Binding NationalHealthInsurance}" 
+                                    Width="100"/>
+                
+                <DataGridTextColumn Header="記号" 
+                                    Binding="{Binding Symbol}" 
+                                    Width="80"/>
+                
+                <DataGridTextColumn Header="番号" 
+                                    Binding="{Binding Number}" 
+                                    Width="80"/>
+                
+                <DataGridTextColumn Header="保険者名" 
+                                    Binding="{Binding InsurerName}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="患者名" 
+                                    Binding="{Binding Name}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="フリガナ" 
+                                    Binding="{Binding Furigana}" 
+                                    Width="120"/>
+                
+                <DataGridTextColumn Header="年齢" 
+                                    Binding="{Binding Age}" 
+                                    Width="60"/>
+                
+                <DataGridTextColumn Header="転棟日" 
+                                    Binding="{Binding Discharge, StringFormat=yyyy/MM/dd}" 
+                                    Width="100"/>
+                
+                <DataGridTemplateColumn Header="操作" Width="120">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="再入院" 
+                                Command="{Binding $parent[DataGrid].((vm:MainViewModel)DataContext).ReadmitPatientCommand}"
+                                CommandParameter="{Binding}"
+                                Background="Blue"
+                                Foreground="White"
+                                FontSize="12"
+                                Padding="8,4"/>
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+            
+            <!-- Status bar -->
+            <Border Grid.Row="1" 
+                    Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    Padding="8"
+                    Margin="0,8,0,0">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock Text="転棟患者数："
+                           FontSize="12"
+                           FontFamily="{StaticResource JapaneseUIFont}"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding TransferredPatients.Count}"
+                           FontSize="12"
+                           FontFamily="{StaticResource MonospaceFont}"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,5.5,0,0"/>
+                <TextBlock Text="人"
+                           FontSize="12"
+                           FontFamily="{StaticResource JapaneseUIFont}"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </Border>
+          </Grid>
+        </TabItem>
+        
+      </TabControl>
 
       <!-- Loading indicator -->
-      <Border Grid.Row="0" 
-              Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+      <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
               Opacity="0.8"
               IsVisible="{Binding IsLoading}">
         <StackPanel HorizontalAlignment="Center" 
@@ -118,37 +397,11 @@
           <ui:ProgressRing IsActive="{Binding IsLoading}" 
                            Width="48" 
                            Height="48"/>
-          <TextBlock Text="患者データを読み込み中..." 
+          <TextBlock Text="データを読み込み中..." 
                      HorizontalAlignment="Center"
                      FontSize="16"/>
         </StackPanel>
       </Border>
-
-      <!-- Status bar -->
-      <Border Grid.Row="1" 
-              Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-              Padding="8"
-              Margin="0,8,0,0">
-        <StackPanel Orientation="Horizontal" Spacing="4">
-          <TextBlock Text="登録患者数："
-                     FontSize="12"
-                     FontFamily="{StaticResource JapaneseUIFont}"
-                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                     VerticalAlignment="Center"/>
-          <TextBlock Text="{Binding Patients.Count}"
-                     FontSize="12"
-                     FontFamily="{StaticResource MonospaceFont}"
-                     FontWeight="SemiBold"
-                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                     VerticalAlignment="Center"
-                     Margin="0,5.5,0,0"/>
-          <TextBlock Text="人"
-                     FontSize="12"
-                     FontFamily="{StaticResource JapaneseUIFont}"
-                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                     VerticalAlignment="Center"/>
-        </StackPanel>
-      </Border>
     </Grid>
   </Grid>
-</UserControl> 
+</UserControl>

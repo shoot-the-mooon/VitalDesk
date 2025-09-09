@@ -13,21 +13,11 @@ public class CsvExportService
         try
         {
             var csv = new StringBuilder();
+            csv.AppendLine("国保,記号,番号,保険者名,患者名,フリガナ,生年月日,年齢,初診日,入院日,退院日");
             
-            // Header
-            csv.AppendLine("Code,Name,BirthDate,Age,InsuranceNo,FirstVisit,Admission,Discharge");
-            
-            // Data
             foreach (var patient in patients)
             {
-                csv.AppendLine($"{EscapeCsvField(patient.Code)}," +
-                              $"{EscapeCsvField(patient.Name)}," +
-                              $"{patient.BirthDate?.ToString("yyyy-MM-dd")}," +
-                              $"{patient.Age}," +
-                              $"{EscapeCsvField(patient.InsuranceNo)}," +
-                              $"{patient.FirstVisit?.ToString("yyyy-MM-dd")}," +
-                              $"{patient.Admission?.ToString("yyyy-MM-dd")}," +
-                              $"{patient.Discharge?.ToString("yyyy-MM-dd")}");
+                csv.AppendLine($"{EscapeCsv(patient.NationalHealthInsurance)},{EscapeCsv(patient.Symbol)},{EscapeCsv(patient.Number)},{EscapeCsv(patient.InsurerName)},{EscapeCsv(patient.Name)},{EscapeCsv(patient.Furigana)},{patient.BirthDate:yyyy-MM-dd},{patient.Age},{patient.FirstVisit:yyyy-MM-dd},{patient.Admission:yyyy-MM-dd},{patient.Discharge:yyyy-MM-dd}");
             }
             
             await File.WriteAllTextAsync(filePath, csv.ToString(), Encoding.UTF8);
@@ -69,12 +59,13 @@ public class CsvExportService
         }
     }
     
-    private string EscapeCsvField(string? field)
+    private static string EscapeCsv(string? field)
     {
         if (string.IsNullOrEmpty(field))
             return string.Empty;
             
-        if (field.Contains(',') || field.Contains('"') || field.Contains('\n'))
+        // If the field contains comma, quote, or newline, wrap it in quotes and escape internal quotes
+        if (field.Contains(',') || field.Contains('"') || field.Contains('\n') || field.Contains('\r'))
         {
             return $"\"{field.Replace("\"", "\"\"")}\"";
         }

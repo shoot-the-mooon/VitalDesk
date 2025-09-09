@@ -1,12 +1,19 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              xmlns:vm="using:VitalDesk.App.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="VitalDesk.App.Views.SettingsView"
-             x:DataType="vm:SettingsViewModel">
+        x:DataType="vm:SettingsViewModel"
+        Title="設定"
+        Width="800"
+        Height="600"
+        MinWidth="600"
+        MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
 
   <Design.DataContext>
     <vm:SettingsViewModel/>
@@ -203,4 +210,4 @@
 
     </StackPanel>
   </ScrollViewer>
-</UserControl> 
+</Window> 

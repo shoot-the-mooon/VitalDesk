@@ -8,7 +8,7 @@
         x:DataType="vm:PatientDetailsViewModel"
         Title="患者詳細"
         Width="950"
-        Height="650"
+        Height="600"
         MinHeight="500"
         MaxHeight="700"
         SizeToContent="Manual"

@@ -10,7 +10,7 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="VitalDesk - Vital Signs Management System"
-        Width="1200" Height="800"
+        Width="1200" Height="750"
         MinWidth="800" MinHeight="600">
 
     <Design.DataContext>

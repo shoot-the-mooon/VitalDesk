@@ -5,7 +5,7 @@
         x:Class="VitalDesk.App.Views.VitalInputDialog"
         x:DataType="vm:VitalInputViewModel"
         Width="620"
-        Height="650"
+        Height="620"
         MinHeight="500"
         MaxHeight="750"
         SizeToContent="Manual"

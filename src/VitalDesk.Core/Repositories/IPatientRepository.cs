@@ -5,6 +5,7 @@ namespace VitalDesk.Core.Repositories;
 public interface IPatientRepository
 {
     Task<IEnumerable<Patient>> GetAllAsync();
+    Task<IEnumerable<Patient>> GetAllPatientsIncludingAllStatusAsync(); // バックアップ用：全ステータスの患者を取得
     Task<Patient?> GetByIdAsync(int id);
     Task<Patient?> GetByCodeAsync(string nationalHealthInsurance);
     Task<IEnumerable<Patient>> SearchAsync(string searchTerm);

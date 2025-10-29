@@ -61,8 +61,8 @@ public class VitalRepository : IVitalRepository
     {
         using var connection = new SqliteConnection(_connectionString);
         var sql = @"
-            INSERT INTO Vital (PatientId, MeasuredAt, Temperature, Pulse, Systolic, Diastolic, Weight)
-            VALUES (@PatientId, @MeasuredAt, @Temperature, @Pulse, @Systolic, @Diastolic, @Weight);
+            INSERT INTO Vital (PatientId, MeasuredAt, Temperature, Pulse, Systolic, Diastolic, Weight, Breakfast, Lunch, Dinner, Sleep, BowelMovement, Note)
+            VALUES (@PatientId, @MeasuredAt, @Temperature, @Pulse, @Systolic, @Diastolic, @Weight, @Breakfast, @Lunch, @Dinner, @Sleep, @BowelMovement, @Note);
             SELECT last_insert_rowid();";
         
         var parameters = new DynamicParameters();
@@ -73,6 +73,12 @@ public class VitalRepository : IVitalRepository
         parameters.Add("@Systolic", vital.Systolic);
         parameters.Add("@Diastolic", vital.Diastolic);
         parameters.Add("@Weight", vital.Weight);
+        parameters.Add("@Breakfast", vital.Breakfast);
+        parameters.Add("@Lunch", vital.Lunch);
+        parameters.Add("@Dinner", vital.Dinner);
+        parameters.Add("@Sleep", vital.Sleep);
+        parameters.Add("@BowelMovement", vital.BowelMovement);
+        parameters.Add("@Note", vital.Note);
         
         return await connection.QuerySingleAsync<int>(sql, parameters);
     }
@@ -83,7 +89,8 @@ public class VitalRepository : IVitalRepository
         var sql = @"
             UPDATE Vital 
             SET PatientId = @PatientId, MeasuredAt = @MeasuredAt, Temperature = @Temperature,
-                Pulse = @Pulse, Systolic = @Systolic, Diastolic = @Diastolic, Weight = @Weight
+                Pulse = @Pulse, Systolic = @Systolic, Diastolic = @Diastolic, Weight = @Weight,
+                Breakfast = @Breakfast, Lunch = @Lunch, Dinner = @Dinner, Sleep = @Sleep, BowelMovement = @BowelMovement, Note = @Note
             WHERE Id = @Id";
         
         var parameters = new DynamicParameters();
@@ -95,6 +102,12 @@ public class VitalRepository : IVitalRepository
         parameters.Add("@Systolic", vital.Systolic);
         parameters.Add("@Diastolic", vital.Diastolic);
         parameters.Add("@Weight", vital.Weight);
+        parameters.Add("@Breakfast", vital.Breakfast);
+        parameters.Add("@Lunch", vital.Lunch);
+        parameters.Add("@Dinner", vital.Dinner);
+        parameters.Add("@Sleep", vital.Sleep);
+        parameters.Add("@BowelMovement", vital.BowelMovement);
+        parameters.Add("@Note", vital.Note);
         
         var rowsAffected = await connection.ExecuteAsync(sql, parameters);
         return rowsAffected > 0;
@@ -106,5 +119,16 @@ public class VitalRepository : IVitalRepository
         var rowsAffected = await connection.ExecuteAsync(
             "DELETE FROM Vital WHERE Id = @Id", new { Id = id });
         return rowsAffected > 0;
+    }
+    
+    public async Task<int> DeleteByPatientIdAndDateAsync(int patientId, DateTime measuredAt)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        var rowsAffected = await connection.ExecuteAsync(
+            @"DELETE FROM Vital 
+              WHERE PatientId = @PatientId 
+                AND date(MeasuredAt) = date(@MeasuredAt)",
+            new { PatientId = patientId, MeasuredAt = measuredAt });
+        return rowsAffected;
     }
 } 

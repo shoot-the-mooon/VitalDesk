@@ -18,6 +18,15 @@ public class Patient
     public DateTime? FirstVisit { get; set; }
     public DateTime? Admission { get; set; }
     public DateTime? Discharge { get; set; }
+    public string Status { get; set; } = "Admitted"; // Admitted, Discharged, Transferred
     
     public int? Age => BirthDate.HasValue ? DateTime.Now.Year - BirthDate.Value.Year : null;
-} 
+}
+
+// 患者ステータスの定数
+public static class PatientStatus
+{
+    public const string Admitted = "Admitted";     // 入院中
+    public const string Discharged = "Discharged"; // 退院
+    public const string Transferred = "Transferred"; // 転棟
+}

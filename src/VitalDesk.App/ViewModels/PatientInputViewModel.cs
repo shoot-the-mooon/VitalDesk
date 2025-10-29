@@ -116,7 +116,8 @@ public partial class PatientInputViewModel : ObservableValidator
                 BirthDate = BirthDate?.DateTime,
                 FirstVisit = FirstVisit?.DateTime,
                 Admission = Admission?.DateTime,
-                Discharge = Discharge?.DateTime
+                Discharge = Discharge?.DateTime,
+                Status = PatientStatus.Admitted // デフォルトは入院中（退院・転棟はボタンから変更）
             };
             
             bool success;

@@ -25,32 +25,32 @@ public class CsvBackupService
     {
         // デスクトップのVitalDeskフォルダにバックアップを作成
         var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        var backupFolder = Path.Combine(desktopPath, "VitalDesk_Backup");
+        var backupFolder = Path.Combine(desktopPath, "体温記録_バックアップ");
         Directory.CreateDirectory(backupFolder);
 
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var backupFileName = $"VitalDesk_Complete_Backup_{timestamp}.csv";
+        var backupFileName = $"{timestamp}_BackupFile.csv";
         var backupPath = Path.Combine(backupFolder, backupFileName);
 
-        // 全ての患者データとバイタルデータを取得
-        var patients = await _patientRepository.GetAllAsync();
+        // 全ての患者データとバイタルデータを取得（全ステータス含む）
+        var patients = await _patientRepository.GetAllPatientsIncludingAllStatusAsync();
         var vitals = await _vitalRepository.GetAllAsync();
 
         var csv = new StringBuilder();
         
-        // ヘッダー行
-        csv.AppendLine("DataType,PatientId,NationalHealthInsurance,Symbol,Number,InsurerName,Name,Furigana,BirthDate,FirstVisit,Admission,Discharge,VitalId,MeasuredAt,Temperature,Pulse,Systolic,Diastolic,Weight");
+        // ヘッダー行（26フィールド: 0-25）
+        csv.AppendLine("DataType,PatientId,NationalHealthInsurance,Symbol,Number,InsurerName,Name,Furigana,BirthDate,FirstVisit,Admission,Discharge,Status,VitalId,MeasuredAt,Temperature,Pulse,Systolic,Diastolic,Weight,Breakfast,Lunch,Dinner,Sleep,BowelMovement,Note");
 
-        // 患者データを出力
+        // 患者データを出力（13フィールド + 空13フィールド = 26フィールド）
         foreach (var patient in patients.OrderBy(p => p.Furigana))
         {
-            csv.AppendLine($"Patient,{patient.Id},{EscapeCsvField(patient.NationalHealthInsurance)},{EscapeCsvField(patient.Symbol)},{EscapeCsvField(patient.Number)},{EscapeCsvField(patient.InsurerName)},{EscapeCsvField(patient.Name)},{EscapeCsvField(patient.Furigana)},{FormatDate(patient.BirthDate)},{FormatDate(patient.FirstVisit)},{FormatDate(patient.Admission)},{FormatDate(patient.Discharge)},,,,,,,,");
+            csv.AppendLine($"Patient,{patient.Id},{EscapeCsvField(patient.NationalHealthInsurance)},{EscapeCsvField(patient.Symbol)},{EscapeCsvField(patient.Number)},{EscapeCsvField(patient.InsurerName)},{EscapeCsvField(patient.Name)},{EscapeCsvField(patient.Furigana)},{FormatDate(patient.BirthDate)},{FormatDate(patient.FirstVisit)},{FormatDate(patient.Admission)},{FormatDate(patient.Discharge)},{EscapeCsvField(patient.Status)},,,,,,,,,,,,,");
         }
 
-        // バイタルデータを出力
+        // バイタルデータを出力（2フィールド + 空11フィールド + 13フィールド = 26フィールド）
         foreach (var vital in vitals.OrderBy(v => v.PatientId).ThenBy(v => v.MeasuredAt))
         {
-            csv.AppendLine($"Vital,{vital.PatientId},,,,,,,,,,,,{vital.Id},{FormatDateTime(vital.MeasuredAt)},{vital.Temperature},{vital.Pulse},{vital.Systolic},{vital.Diastolic},{vital.Weight}");
+            csv.AppendLine($"Vital,{vital.PatientId},,,,,,,,,,,,{vital.Id},{FormatDateTime(vital.MeasuredAt)},{vital.Temperature},{vital.Pulse},{vital.Systolic},{vital.Diastolic},{vital.Weight},{EscapeCsvField(vital.Breakfast)},{EscapeCsvField(vital.Lunch)},{EscapeCsvField(vital.Dinner)},{vital.Sleep},{vital.BowelMovement},{EscapeCsvField(vital.Note)}");
         }
 
         await File.WriteAllTextAsync(backupPath, csv.ToString(), Encoding.UTF8);
@@ -60,77 +60,147 @@ public class CsvBackupService
 
     public async Task<int> ImportBackupAsync(string csvFilePath)
     {
-        if (!File.Exists(csvFilePath))
-            throw new FileNotFoundException("バックアップファイルが見つかりません。");
-
-        var lines = await File.ReadAllLinesAsync(csvFilePath, Encoding.UTF8);
+        // 復元ログファイルを作成
+        var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        var backupFolder = Path.Combine(desktopPath, "体温記録_バックアップ");
+        Directory.CreateDirectory(backupFolder);
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var logPath = Path.Combine(backupFolder, $"{timestamp}_restore_log.txt");
+        var log = new StringBuilder();
         
-        if (lines.Length < 2)
-            throw new InvalidDataException("無効なバックアップファイルです。");
-
-        // 現在のデータを全て削除
-        await DatabaseInitializer.ClearAllDataAsync();
-
-        var patients = new List<Patient>();
-        var vitals = new List<Vital>();
-        var patientIdMapping = new Dictionary<int, int>(); // 古いID -> 新しいID
-
-        // CSVを解析
-        for (int i = 1; i < lines.Length; i++) // ヘッダーをスキップ
+        try
         {
-            var line = lines[i].Trim();
-            if (string.IsNullOrEmpty(line)) continue;
+            if (!File.Exists(csvFilePath))
+                throw new FileNotFoundException("バックアップファイルが見つかりません。");
+
+            var lines = await File.ReadAllLinesAsync(csvFilePath, Encoding.UTF8);
+            
+            if (lines.Length < 2)
+                throw new InvalidDataException("無効なバックアップファイルです。");
+
+            log.AppendLine($"復元開始: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            log.AppendLine($"ファイル: {Path.GetFileName(csvFilePath)}");
+            log.AppendLine($"総行数: {lines.Length}");
+            log.AppendLine();
+
+            // 現在のデータを全て削除
+            await DatabaseInitializer.ClearAllDataAsync();
+            log.AppendLine("既存データを削除しました");
+            log.AppendLine();
+
+            var patients = new List<Patient>();
+            var vitals = new List<Vital>();
+            var patientIdMapping = new Dictionary<int, int>(); // 古いID -> 新しいID
+            
+            int patientCount = 0;
+            int vitalCount = 0;
+            int skippedLines = 0;
+
+            // CSVを解析
+            for (int i = 1; i < lines.Length; i++) // ヘッダーをスキップ
+            {
+                var line = lines[i].Trim();
+                if (string.IsNullOrEmpty(line)) continue;
 
             var fields = ParseCsvLine(line);
-            if (fields.Length < 19) continue;
-
-            var dataType = fields[0];
-
-            if (dataType == "Patient")
+            
+            // 25フィールドの場合は古いフォーマット（Noteなし）として扱う
+            if (fields.Length == 25)
             {
-                var oldPatientId = int.Parse(fields[1]);
-                var patient = new Patient
-                {
-                    NationalHealthInsurance = fields[2],
-                    Symbol = fields[3],
-                    Number = fields[4],
-                    InsurerName = fields[5],
-                    Name = fields[6],
-                    Furigana = fields[7],
-                    BirthDate = ParseDate(fields[8]),
-                    FirstVisit = ParseDate(fields[9]),
-                    Admission = ParseDate(fields[10]),
-                    Discharge = ParseDate(fields[11])
-                };
-
-                var newPatientId = await _patientRepository.CreateAsync(patient);
-                patientIdMapping[oldPatientId] = newPatientId;
+                // Noteフィールドを空文字列として追加
+                var expandedFields = new string[26];
+                Array.Copy(fields, expandedFields, 25);
+                expandedFields[25] = "";
+                fields = expandedFields;
             }
-            else if (dataType == "Vital")
+            else if (fields.Length < 25)
             {
-                var oldPatientId = int.Parse(fields[1]);
-                if (patientIdMapping.ContainsKey(oldPatientId))
+                skippedLines++;
+                continue;
+            }
+
+                var dataType = fields[0];
+
+                if (dataType == "Patient")
                 {
-                    var vital = new Vital
+                    var oldPatientId = int.Parse(fields[1]);
+                    var patient = new Patient
                     {
-                        PatientId = patientIdMapping[oldPatientId],
-                        MeasuredAt = ParseDateTime(fields[14]),
-                        Temperature = ParseDouble(fields[15]),
-                        Pulse = ParseInt(fields[16]),
-                        Systolic = ParseInt(fields[17]),
-                        Diastolic = ParseInt(fields[18]),
-                        Weight = ParseDouble(fields[19])
+                        NationalHealthInsurance = fields[2],
+                        Symbol = fields[3],
+                        Number = fields[4],
+                        InsurerName = fields[5],
+                        Name = fields[6],
+                        Furigana = fields[7],
+                        BirthDate = ParseDate(fields[8]),
+                        FirstVisit = ParseDate(fields[9]),
+                        Admission = ParseDate(fields[10]),
+                        Discharge = ParseDate(fields[11]),
+                        Status = !string.IsNullOrEmpty(fields[12]) ? fields[12] : PatientStatus.Admitted
                     };
 
-                    await _vitalRepository.CreateAsync(vital);
+                    var newPatientId = await _patientRepository.CreateAsync(patient);
+                    patientIdMapping[oldPatientId] = newPatientId;
+                    patientCount++;
+                }
+                else if (dataType == "Vital")
+                {
+                    var oldPatientId = int.Parse(fields[1]);
+                    if (patientIdMapping.ContainsKey(oldPatientId))
+                    {
+                        var vital = new Vital
+                        {
+                            PatientId = patientIdMapping[oldPatientId],
+                            MeasuredAt = ParseDateTime(fields[14]),
+                            Temperature = ParseDouble(fields[15]),
+                            Pulse = ParseInt(fields[16]),
+                            Systolic = ParseInt(fields[17]),
+                            Diastolic = ParseInt(fields[18]),
+                            Weight = ParseDouble(fields[19]),
+                            Breakfast = fields[20],
+                            Lunch = fields[21],
+                            Dinner = fields[22],
+                            Sleep = ParseInt(fields[23]),
+                            BowelMovement = ParseInt(fields[24]),
+                            Note = fields[25]
+                        };
+
+                        var vitalId = await _vitalRepository.CreateAsync(vital);
+                        if (vitalId > 0)
+                        {
+                            vitalCount++;
+                        }
+                    }
                 }
             }
-        }
+            
+            log.AppendLine();
+            log.AppendLine("=== 復元結果 ===");
+            log.AppendLine($"復元された患者数: {patientCount}人");
+            log.AppendLine($"復元されたバイタル数: {vitalCount}件");
+            log.AppendLine($"スキップされた行数: {skippedLines}行");
+            log.AppendLine($"復元完了: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            
+            // ログファイルを保存
+            await File.WriteAllTextAsync(logPath, log.ToString(), Encoding.UTF8);
 
-        return patientIdMapping.Count;
+            return patientIdMapping.Count;
+        }
+        catch (Exception ex)
+        {
+            log.AppendLine();
+            log.AppendLine("=== エラー発生 ===");
+            log.AppendLine($"エラー: {ex.Message}");
+            log.AppendLine($"スタックトレース: {ex.StackTrace}");
+            
+            // エラーが発生してもログを保存
+            await File.WriteAllTextAsync(logPath, log.ToString(), Encoding.UTF8);
+            
+            throw;
+        }
     }
 
-    private static string EscapeCsvField(string field)
+    private static string EscapeCsvField(string? field)
     {
         if (string.IsNullOrEmpty(field))
             return "";
@@ -226,7 +296,9 @@ public class CsvBackupService
             }
         }
 
+        // 最後のフィールドを追加
         fields.Add(current.ToString());
+        
         return fields.ToArray();
     }
 } 

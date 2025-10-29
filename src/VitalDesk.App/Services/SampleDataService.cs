@@ -22,24 +22,47 @@ public class SampleDataService
     public async Task<bool> HasSampleDataAsync()
     {
         var patients = await _patientRepository.GetAllAsync();
-        return patients.Count() > 50; // Consider it has sample data if more than 50 patients
+        return patients.Count() > 40; // 40人以上いればサンプルデータありと判定
     }
 
-    public async Task GenerateSamplePatientsAsync(int count = 100)
+    /// <summary>
+    /// 50人の患者と3ヶ月分のバイタルデータを生成
+    /// </summary>
+    public async Task GenerateSamplePatientsAsync(int patientCount = 50, int daysOfVitals = 90)
     {
-        // まず既存のデータを全て削除
+        // データベースを初期化
+        await DatabaseInitializer.InitializeAsync();
+        
+        // 既存のデータを全て削除
         await DatabaseInitializer.ClearAllDataAsync();
         
         var random = new Random();
-        var firstNames = new[] { "太郎", "花子", "次郎", "美咲", "健太", "由美", "雄介", "恵子", "拓也", "智子", 
-            "一郎", "真由美", "浩二", "久美子", "直樹", "裕子", "修平", "彩", "翔太", "麻衣" };
-        var lastNames = new[] { "田中", "佐藤", "鈴木", "高橋", "渡辺", "伊藤", "山田", "中村", "小林", "加藤",
-            "吉田", "山口", "斎藤", "松本", "井上", "木村", "林", "清水", "山本", "中野" };
+        
+        // 名前のサンプル
+        var firstNames = new[] { 
+            "太郎", "花子", "次郎", "美咲", "健太", "由美", "雄介", "恵子", "拓也", "智子",
+            "一郎", "真由美", "浩二", "久美子", "直樹", "裕子", "修平", "彩", "翔太", "麻衣",
+            "大輔", "明美", "隆", "愛", "誠", "里奈", "剛", "桜", "博", "美穂"
+        };
+        
+        var lastNames = new[] { 
+            "田中", "佐藤", "鈴木", "高橋", "渡辺", "伊藤", "山田", "中村", "小林", "加藤",
+            "吉田", "山口", "斎藤", "松本", "井上", "木村", "林", "清水", "山本", "中野",
+            "阿部", "橋本", "石川", "前田", "藤田", "後藤", "岡田", "長谷川", "村上", "近藤"
+        };
+        
+        // 保険者名のサンプル
         var insurerNames = new[] { 
-            "東京都国民健康保険", "大阪市国民健康保険", "横浜市国民健康保険", "名古屋市国民健康保険", "福岡市国民健康保険",
-            "神戸市国民健康保険", "札幌市国民健康保険", "京都市国民健康保険", "広島市国民健康保険", "仙台市国民健康保険" };
+            "東京都国民健康保険", "大阪市国民健康保険", "横浜市国民健康保険", 
+            "名古屋市国民健康保険", "福岡市国民健康保険", "神戸市国民健康保険", 
+            "札幌市国民健康保険", "京都市国民健康保険", "広島市国民健康保険", 
+            "仙台市国民健康保険", "川崎市国民健康保険", "さいたま市国民健康保険",
+            "千葉市国民健康保険", "北九州市国民健康保険", "新潟市国民健康保険"
+        };
 
-        for (int i = 1; i <= count; i++)
+        Console.WriteLine($"サンプルデータ生成開始: {patientCount}人の患者、{daysOfVitals}日分のバイタル");
+
+        for (int i = 1; i <= patientCount; i++)
         {
             var lastName = lastNames[random.Next(lastNames.Length)];
             var firstName = firstNames[random.Next(firstNames.Length)];
@@ -47,12 +70,10 @@ public class SampleDataService
             var furigana = GenerateFurigana(lastName, firstName);
             var insurerName = insurerNames[random.Next(insurerNames.Length)];
             
-            // 国保番号は市区町村番号（6桁）+ 個人番号（4桁）
-            var cityCode = random.Next(100000, 999999).ToString();
-            var personalCode = random.Next(1000, 9999).ToString();
-            var nationalHealthInsurance = $"{cityCode}{personalCode}";
+            // 国保番号: 6桁の市区町村コード + 4桁の個人番号
+            var nationalHealthInsurance = $"{random.Next(100000, 999999)}{random.Next(1000, 9999)}";
             
-            // 記号は2-4文字のアルファベット + 3-5桁の数字
+            // 記号: 2-4文字のアルファベット + 3-5桁の数字
             var symbolChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             var symbolLength = random.Next(2, 5);
             var symbolLetters = new string(Enumerable.Range(0, symbolLength)
@@ -61,8 +82,33 @@ public class SampleDataService
             var symbolNumbers = random.Next(100, 99999).ToString();
             var symbol = $"{symbolLetters}{symbolNumbers}";
             
-            // 番号は6-8桁の数字
+            // 番号: 6-8桁の数字（文字列）
             var number = random.Next(100000, 99999999).ToString();
+
+            // 年齢は20-90歳
+            var birthDate = DateTime.Now.AddYears(-random.Next(20, 91)).AddDays(-random.Next(0, 365));
+            var firstVisit = DateTime.Now.AddDays(-random.Next(90, 730)); // 3ヶ月〜2年前
+            var admission = DateTime.Now.AddDays(-random.Next(0, daysOfVitals)); // バイタル期間内に入院
+
+            // ステータスの決定
+            var statusRandom = random.NextDouble();
+            string status;
+            DateTime? discharge = null;
+            
+            if (statusRandom < 0.70) // 70%が入院中
+            {
+                status = PatientStatus.Admitted;
+            }
+            else if (statusRandom < 0.85) // 15%が退院
+            {
+                status = PatientStatus.Discharged;
+                discharge = admission.AddDays(random.Next(1, daysOfVitals / 2));
+            }
+            else // 15%が転棟
+            {
+                status = PatientStatus.Transferred;
+                discharge = admission.AddDays(random.Next(1, daysOfVitals / 2));
+            }
 
             var patient = new Patient
             {
@@ -72,22 +118,25 @@ public class SampleDataService
                 InsurerName = insurerName,
                 Name = name,
                 Furigana = furigana,
-                BirthDate = DateTime.Now.AddYears(-random.Next(20, 90)).AddDays(-random.Next(0, 365)),
-                FirstVisit = DateTime.Now.AddDays(-random.Next(30, 365)),
-                Admission = DateTime.Now.AddDays(-random.Next(1, 30))
+                BirthDate = birthDate,
+                FirstVisit = firstVisit,
+                Admission = admission,
+                Discharge = discharge,
+                Status = status
             };
             
-            // 20%の確率で退院済み
-            if (random.NextDouble() < 0.2)
-            {
-                patient.Discharge = patient.Admission?.AddDays(random.Next(1, 14));
-            }
-            
-            var id = await _patientRepository.CreateAsync(patient);
+            var patientId = await _patientRepository.CreateAsync(patient);
             
             // バイタルサインを生成
-            await GenerateVitalSignsForPatient(id, random);
+            await GenerateVitalSignsForPatient(patientId, admission, daysOfVitals, random);
+            
+            if (i % 10 == 0)
+            {
+                Console.WriteLine($"  {i}/{patientCount}人の患者データを生成完了");
+            }
         }
+        
+        Console.WriteLine($"サンプルデータ生成完了: {patientCount}人");
     }
     
     private string GenerateFurigana(string lastName, string firstName)
@@ -114,6 +163,16 @@ public class SampleDataService
             "清水" => "シミズ",
             "山本" => "ヤマモト",
             "中野" => "ナカノ",
+            "阿部" => "アベ",
+            "橋本" => "ハシモト",
+            "石川" => "イシカワ",
+            "前田" => "マエダ",
+            "藤田" => "フジタ",
+            "後藤" => "ゴトウ",
+            "岡田" => "オカダ",
+            "長谷川" => "ハセガワ",
+            "村上" => "ムラカミ",
+            "近藤" => "コンドウ",
             _ => "タナカ"
         };
         
@@ -139,46 +198,76 @@ public class SampleDataService
             "彩" => "アヤ",
             "翔太" => "ショウタ",
             "麻衣" => "マイ",
+            "大輔" => "ダイスケ",
+            "明美" => "アケミ",
+            "隆" => "タカシ",
+            "愛" => "アイ",
+            "誠" => "マコト",
+            "里奈" => "リナ",
+            "剛" => "ツヨシ",
+            "桜" => "サクラ",
+            "博" => "ヒロシ",
+            "美穂" => "ミホ",
             _ => "タロウ"
         };
         
         return $"{lastNameFurigana} {firstNameFurigana}";
     }
 
-    private async Task GenerateVitalSignsForPatient(int patientId, Random random)
+    /// <summary>
+    /// 指定された患者に対して、指定日数分のバイタルサインを生成（1日1件）
+    /// </summary>
+    private async Task GenerateVitalSignsForPatient(int patientId, DateTime admissionDate, int days, Random random)
     {
-        var daysBack = random.Next(1, 30);
-        
-        for (int day = 0; day < daysBack; day++)
+        // 1日1件の測定
+        for (int day = 0; day < days; day++)
         {
-            var measurementDate = DateTime.Now.AddDays(-day);
+            var measurementDate = admissionDate.AddDays(day);
             
-            // 1日2-3回の測定
-            var measurementsPerDay = random.Next(2, 4);
+            // 今日より未来の日付はスキップ
+            if (measurementDate > DateTime.Now)
+                break;
             
-            for (int measurement = 0; measurement < measurementsPerDay; measurement++)
+            // 測定時間: 午前中（8-11時）にランダム
+            var hour = random.Next(8, 12);
+            var minute = random.Next(0, 60);
+            var measuredAt = measurementDate.Date.AddHours(hour).AddMinutes(minute);
+            
+            // バイタルサインの生成（現実的な値）
+            var vital = new Vital
             {
-                // 測定時間は6時、14時、20時付近
-                var hour = measurement switch
-                {
-                    0 => random.Next(5, 8), // 朝
-                    1 => random.Next(13, 15), // 昼
-                    _ => random.Next(19, 22) // 夜
-                };
-                
-                var vital = new Vital
-                {
-                    PatientId = patientId,
-                    MeasuredAt = measurementDate.AddHours(hour).AddMinutes(random.Next(0, 60)),
-                    Temperature = Math.Round(36.2 + random.NextDouble() * 2.0, 1), // 36.2-38.2°C
-                    Pulse = random.Next(60, 100), // より現実的な範囲
-                    Systolic = random.Next(90, 140), // より現実的な範囲
-                    Diastolic = random.Next(60, 90), // より現実的な範囲
-                    Weight = Math.Round(45.0 + random.NextDouble() * 45.0, 1) // 45-90kg
-                };
+                PatientId = patientId,
+                MeasuredAt = measuredAt,
+                Temperature = Math.Round(35.8 + random.NextDouble() * 2.4, 1), // 35.8-38.2°C
+                Pulse = random.Next(55, 105),        // 55-104 bpm
+                Systolic = random.Next(95, 155),     // 95-154 mmHg
+                Diastolic = random.Next(55, 95),     // 55-94 mmHg
+                Weight = Math.Round(45.0 + random.NextDouble() * 50.0, 1), // 45.0-95.0 kg
+                Breakfast = random.NextDouble() > 0.1 ? "○" : "×", // 90%の確率で○
+                Lunch = random.NextDouble() > 0.1 ? "○" : "×",     // 90%の確率で○
+                Dinner = random.NextDouble() > 0.1 ? "○" : "×",    // 90%の確率で○
+                Sleep = random.Next(4, 11),           // 4-10時間
+                BowelMovement = random.Next(0, 4),    // 0-3回
+                Note = random.NextDouble() > 0.8 ? GenerateRandomNote(random) : null // 20%の確率で備考あり
+            };
 
-                await _vitalRepository.CreateAsync(vital);
-            }
+            await _vitalRepository.CreateAsync(vital);
         }
     }
-} 
+    
+    private string GenerateRandomNote(Random random)
+    {
+        var notes = new[]
+        {
+            "良好",
+            "特に問題なし",
+            "やや疲労感あり",
+            "元気",
+            "食欲良好",
+            "安静にしている",
+            "よく眠れた",
+            "少し倦怠感あり"
+        };
+        return notes[random.Next(notes.Length)];
+    }
+}

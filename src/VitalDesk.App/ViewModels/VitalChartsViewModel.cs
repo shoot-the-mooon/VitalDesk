@@ -28,6 +28,9 @@ public partial class VitalChartsViewModel : ViewModelBase
     private List<Vital> _allVitals = new();
     private List<Vital> _currentVitals = new();
     
+    // イベント: グラフの表示期間が変更されたときに発火
+    public event Action<DateTime, DateTime>? OnPeriodChanged;
+    
     [ObservableProperty]
     private ObservableCollection<ISeries> _combinedSeries = new();
     
@@ -82,8 +85,8 @@ public partial class VitalChartsViewModel : ViewModelBase
         var temperatureAxis = new Axis
         {
             Name = "体温 (°C)",
-            NamePaint = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
-            LabelsPaint = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
+            NamePaint = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
+            LabelsPaint = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
             Position = LiveChartsCore.Measure.AxisPosition.Start,
             MinLimit = 0,
             MaxLimit = 100,
@@ -96,8 +99,8 @@ public partial class VitalChartsViewModel : ViewModelBase
         var pulseAxis = new Axis
         {
             Name = "脈拍 (bpm)",
-            NamePaint = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
-            LabelsPaint = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
+            NamePaint = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
+            LabelsPaint = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
             Position = LiveChartsCore.Measure.AxisPosition.End,
             MinLimit = 0,
             MaxLimit = 100,
@@ -191,6 +194,15 @@ public partial class VitalChartsViewModel : ViewModelBase
     {
         var filteredVitals = GetCurrentWeekVitals();
         
+        // 期間の開始日と終了日を取得
+        var now = DateTime.Now;
+        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday).Date;
+        var targetStartOfWeek = startOfWeek.AddDays(-7 * CurrentWeekOffset);
+        var targetEndOfWeek = targetStartOfWeek.AddDays(7);
+        
+        // テーブルに期間変更を通知
+        OnPeriodChanged?.Invoke(targetStartOfWeek, targetEndOfWeek);
+        
         if (!filteredVitals.Any())
         {
             NoDataMessage = "この期間にデータがありません";
@@ -280,10 +292,10 @@ public partial class VitalChartsViewModel : ViewModelBase
         {
             Values = temperatureData,
             Name = "Temperature",
-            Stroke = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface, StrokeThickness = 2 },
+            Stroke = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface, StrokeThickness = 2 },
             Fill = null,
-            GeometryStroke = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface, StrokeThickness = 2 },
-            GeometryFill = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
+            GeometryStroke = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface, StrokeThickness = 2 },
+            GeometryFill = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
             GeometrySize = 6,
             ScalesYAt = 0, // 左軸（体温）
             LineSmoothness = 0 // 直線にする
@@ -296,10 +308,10 @@ public partial class VitalChartsViewModel : ViewModelBase
         {
             Values = pulseData,
             Name = "Pulse",
-            Stroke = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface, StrokeThickness = 2 },
+            Stroke = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface, StrokeThickness = 2 },
             Fill = null,
-            GeometryStroke = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface, StrokeThickness = 2 },
-            GeometryFill = new SolidColorPaint(SKColors.Blue) { SKTypeface = JpTypeface },
+            GeometryStroke = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface, StrokeThickness = 2 },
+            GeometryFill = new SolidColorPaint(SKColors.Red) { SKTypeface = JpTypeface },
             GeometrySize = 6,
             ScalesYAt = 1, // 右軸（脈拍）
             LineSmoothness = 0 // 直線にする

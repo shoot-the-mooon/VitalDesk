@@ -15,6 +15,23 @@ public class Vital
     public int? Diastolic { get; set; }
     public double? Weight { get; set; }
     
+    // 食事（朝・昼・夕）
+    public string? Breakfast { get; set; } // "○" or "×"
+    public string? Lunch { get; set; }     // "○" or "×"
+    public string? Dinner { get; set; }    // "○" or "×"
+    
+    // 睡眠時間（時間）
+    public int? Sleep { get; set; }
+    
+    // 便通（回数）
+    public int? BowelMovement { get; set; }
+    
+    // 備考
+    public string? Note { get; set; }
+    
+    // 食事を結合した文字列（表示用）
+    public string MealSummary => $"{Breakfast ?? "－"}{Lunch ?? "－"}{Dinner ?? "－"}";
+    
     // Navigation property
     public Patient? Patient { get; set; }
 } 

@@ -36,7 +36,8 @@ public static class DatabaseInitializer
                 BirthDate              DATE,
                 FirstVisit             DATE,
                 Admission              DATE,
-                Discharge              DATE
+                Discharge              DATE,
+                Status                 TEXT    NOT NULL DEFAULT 'Admitted'
             );");
         
         // Migration: Add new columns if they don't exist
@@ -80,6 +81,16 @@ public static class DatabaseInitializer
         try
         {
             await connection.ExecuteAsync("ALTER TABLE Patient ADD COLUMN Furigana TEXT NOT NULL DEFAULT '';");
+        }
+        catch (SqliteException ex) when (ex.Message.Contains("duplicate column name"))
+        {
+            // Column already exists, ignore
+        }
+        
+        // Add Status column if it doesn't exist
+        try
+        {
+            await connection.ExecuteAsync("ALTER TABLE Patient ADD COLUMN Status TEXT NOT NULL DEFAULT 'Admitted';");
         }
         catch (SqliteException ex) when (ex.Message.Contains("duplicate column name"))
         {
@@ -135,6 +146,7 @@ public static class DatabaseInitializer
             await connection.ExecuteAsync("UPDATE Patient SET Symbol = '' WHERE Symbol IS NULL");
             await connection.ExecuteAsync("UPDATE Patient SET Number = '' WHERE Number IS NULL");
             await connection.ExecuteAsync("UPDATE Patient SET InsurerName = '' WHERE InsurerName IS NULL");
+            await connection.ExecuteAsync("UPDATE Patient SET Status = 'Admitted' WHERE Status IS NULL OR Status = ''");
         }
         catch (Exception)
         {
@@ -144,14 +156,20 @@ public static class DatabaseInitializer
         // Create Vital table
         await connection.ExecuteAsync(@"
             CREATE TABLE IF NOT EXISTS Vital (
-                Id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                PatientId   INTEGER NOT NULL,
-                MeasuredAt  DATETIME NOT NULL,
-                Temperature REAL     NOT NULL,
-                Pulse       INTEGER,
-                Systolic    INTEGER,
-                Diastolic   INTEGER,
-                Weight      REAL,
+                Id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                PatientId     INTEGER NOT NULL,
+                MeasuredAt    DATETIME NOT NULL,
+                Temperature   REAL     NOT NULL,
+                Pulse         INTEGER,
+                Systolic      INTEGER,
+                Diastolic     INTEGER,
+                Weight        REAL,
+                Breakfast     TEXT,
+                Lunch         TEXT,
+                Dinner        TEXT,
+                Sleep         INTEGER,
+                BowelMovement INTEGER,
+                Note          TEXT,
                 FOREIGN KEY(PatientId) REFERENCES Patient(Id)
             );");
         
@@ -160,7 +178,7 @@ public static class DatabaseInitializer
             CREATE INDEX IF NOT EXISTS IX_Vital_Patient_Time 
             ON Vital(PatientId, MeasuredAt);");
     }
-
+    
     public static async Task ClearAllDataAsync()
     {
         var connectionString = GetConnectionString();
@@ -174,4 +192,4 @@ public static class DatabaseInitializer
         // Reset auto-increment counters
         await connection.ExecuteAsync("DELETE FROM sqlite_sequence WHERE name IN ('Patient', 'Vital')");
     }
-} 
+}

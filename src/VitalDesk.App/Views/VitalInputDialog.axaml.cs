@@ -32,6 +32,22 @@ public partial class VitalInputDialog : Window
         Close(saved);
     }
     
+    private void OnDateUpClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is VitalInputViewModel viewModel)
+        {
+            viewModel.MeasuredAt = viewModel.MeasuredAt.AddDays(1);
+        }
+    }
+    
+    private void OnDateDownClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is VitalInputViewModel viewModel)
+        {
+            viewModel.MeasuredAt = viewModel.MeasuredAt.AddDays(-1);
+        }
+    }
+    
     private void OnSetTodayClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (DataContext is VitalInputViewModel viewModel)
@@ -55,4 +71,4 @@ public partial class VitalInputDialog : Window
             viewModel.MeasuredAt = DateTimeOffset.Now.AddDays(-2);
         }
     }
-} 
+}

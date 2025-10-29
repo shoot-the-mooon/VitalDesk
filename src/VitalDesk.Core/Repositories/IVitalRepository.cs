@@ -12,4 +12,5 @@ public interface IVitalRepository
     Task<int> CreateAsync(Vital vital);
     Task<bool> UpdateAsync(Vital vital);
     Task<bool> DeleteAsync(int id);
+    Task<int> DeleteByPatientIdAndDateAsync(int patientId, DateTime measuredAt);
 } 

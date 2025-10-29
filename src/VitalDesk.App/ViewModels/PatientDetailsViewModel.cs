@@ -36,8 +36,16 @@ public partial class PatientDetailsViewModel : ViewModelBase
         _vitalRepository = new VitalRepository();
         ChartsViewModel = new VitalChartsViewModel(patient);
         
+        // グラフの期間が変更されたときにテーブルを更新
+        ChartsViewModel.OnPeriodChanged += OnChartPeriodChanged;
+        
         CalculateAge();
         _ = LoadRecentVitalsAsync();
+    }
+    
+    private void OnChartPeriodChanged(DateTime startDate, DateTime endDate)
+    {
+        _ = LoadVitalsForPeriodAsync(startDate, endDate);
     }
     
     private void CalculateAge()
@@ -74,6 +82,34 @@ public partial class PatientDetailsViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading vitals: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    private async Task LoadVitalsForPeriodAsync(DateTime startDate, DateTime endDate)
+    {
+        try
+        {
+            IsLoading = true;
+            var vitals = await _vitalRepository.GetByPatientIdAsync(Patient.Id);
+            
+            // 指定された期間のバイタルデータをフィルタリング
+            var filteredVitals = vitals
+                .Where(v => v.MeasuredAt >= startDate && v.MeasuredAt < endDate)
+                .OrderByDescending(v => v.MeasuredAt);
+            
+            RecentVitals.Clear();
+            foreach (var vital in filteredVitals)
+            {
+                RecentVitals.Add(vital);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading vitals for period: {ex.Message}");
         }
         finally
         {

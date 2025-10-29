@@ -6,7 +6,7 @@
         xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
         x:Class="VitalDesk.App.Views.PatientDetailsDialog"
         x:DataType="vm:PatientDetailsViewModel"
-        Title="患者詳細"
+        Title="{Binding Patient.Name}"
         Width="950"
         Height="600"
         MinHeight="500"
@@ -20,7 +20,7 @@
                   AllowAutoHide="True">
         <StackPanel Spacing="24">
             <!-- 患者基本情報 -->
-            <ui:SettingsExpander Header="患者基本情報を表示する" 
+            <ui:SettingsExpander Header="{Binding Patient.Name}"
                                 IconSource="Contact"
                                 IsExpanded="False">
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" 
@@ -92,9 +92,10 @@
             <StackPanel Spacing="16">
                 <!-- 操作ボタン -->
                 <StackPanel Orientation="Horizontal" Spacing="12">
-                    <Button Content="バイタル追加" 
+                    <Button Content="記録する" 
                             Command="{Binding AddVitalCommand}"
                             Classes="accent"
+                            Width="100"
                             Background="Orange"/>
                     
                     <!-- 週間ナビゲーション -->
@@ -130,7 +131,8 @@
                         <lvc:CartesianChart Series="{Binding ChartsViewModel.CombinedSeries}"
                                            XAxes="{Binding ChartsViewModel.CombinedXAxes}"
                                            YAxes="{Binding ChartsViewModel.CombinedYAxes}"
-                                           Height="400"/>
+                                           Height="400"
+                                           IsHitTestVisible="False"/>
                     </StackPanel>
                 </Border>
                 
@@ -181,6 +183,8 @@
                                         <Setter Property="FontFamily" Value="{StaticResource MonospaceFont}"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        <Setter Property="ToolTip.Tip" Value="{Binding $self.Text}"/>
                                     </Style>
                                 </DataGrid.Styles>
                                 <DataGrid.Columns>
@@ -209,6 +213,22 @@
                                     <DataGridTextColumn Header="体重" 
                                                         Binding="{Binding Weight, StringFormat='{}{0:F1}kg'}"
                                                         Width="90"
+                                                        FontFamily="Consolas, 'Courier New', monospace"/>
+                                    <DataGridTextColumn Header="食事" 
+                                                        Binding="{Binding MealSummary}"
+                                                        Width="80"
+                                                        FontFamily="Consolas, 'Courier New', monospace"/>
+                                    <DataGridTextColumn Header="睡眠" 
+                                                        Binding="{Binding Sleep, StringFormat='{}{0}h'}"
+                                                        Width="70"
+                                                        FontFamily="Consolas, 'Courier New', monospace"/>
+                                    <DataGridTextColumn Header="便通" 
+                                                        Binding="{Binding BowelMovement, StringFormat='{}{0}'}"
+                                                        Width="70"
+                                                        FontFamily="Consolas, 'Courier New', monospace"/>
+                                    <DataGridTextColumn Header="備考" 
+                                                        Binding="{Binding Note}"
+                                                        Width="150"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                 </DataGrid.Columns>
                             </DataGrid>

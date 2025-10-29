@@ -36,6 +36,30 @@ public partial class VitalInputViewModel : ObservableValidator
     [Range(1.0, 300.0, ErrorMessage = "体重は1.0～300.0kgの範囲で入力してください")]
     private double? _weight = 60.0; // デフォルト値: 平均体重
     
+    // 食事（朝・昼・夕）
+    [ObservableProperty]
+    private string? _breakfast = "○"; // デフォルト: ○
+    
+    [ObservableProperty]
+    private string? _lunch = "○"; // デフォルト: ○
+    
+    [ObservableProperty]
+    private string? _dinner = "○"; // デフォルト: ○
+    
+    // 睡眠時間
+    [ObservableProperty]
+    [Range(0, 24, ErrorMessage = "睡眠時間は0～24時間の範囲で入力してください")]
+    private int? _sleep = 8; // デフォルト: 8時間
+    
+    // 便通
+    [ObservableProperty]
+    [Range(0, 20, ErrorMessage = "便通は0～20回の範囲で入力してください")]
+    private int? _bowelMovement = 1; // デフォルト: 1回
+    
+    // 備考
+    [ObservableProperty]
+    private string? _note = string.Empty;
+    
     [ObservableProperty]
     private DateTimeOffset _measuredAt = DateTimeOffset.Now;
     
@@ -123,6 +147,12 @@ public partial class VitalInputViewModel : ObservableValidator
         Systolic = vital.Systolic;
         Diastolic = vital.Diastolic;
         Weight = vital.Weight;
+        Breakfast = vital.Breakfast ?? "○";
+        Lunch = vital.Lunch ?? "○";
+        Dinner = vital.Dinner ?? "○";
+        Sleep = vital.Sleep ?? 8;
+        BowelMovement = vital.BowelMovement ?? 1;
+        Note = vital.Note ?? string.Empty;
         MeasuredAt = new DateTimeOffset(vital.MeasuredAt);
     }
     
@@ -150,20 +180,28 @@ public partial class VitalInputViewModel : ObservableValidator
             
             var vital = new Vital
             {
-                Id = _editingVitalId ?? 0,
                 PatientId = _patientId,
                 Temperature = Temperature!.Value,
                 Pulse = Pulse,
                 Systolic = Systolic,
                 Diastolic = Diastolic,
                 Weight = Weight,
+                Breakfast = Breakfast,
+                Lunch = Lunch,
+                Dinner = Dinner,
+                Sleep = Sleep,
+                BowelMovement = BowelMovement,
+                Note = Note,
                 MeasuredAt = MeasuredAt.DateTime
             };
             
             bool success;
-            if (IsEditMode && _editingVitalId.HasValue)
+            if (IsEditMode)
             {
-                success = await _vitalRepository.UpdateAsync(vital);
+                // 更新モードの場合：同じ日のデータを全て削除してから新規追加（完全上書き）
+                await _vitalRepository.DeleteByPatientIdAndDateAsync(_patientId, MeasuredAt.DateTime);
+                var newId = await _vitalRepository.CreateAsync(vital);
+                success = newId > 0;
             }
             else
             {

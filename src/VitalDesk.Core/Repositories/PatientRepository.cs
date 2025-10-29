@@ -17,7 +17,16 @@ public class PatientRepository : IPatientRepository
     public async Task<IEnumerable<Patient>> GetAllAsync()
     {
         using var connection = new SqliteConnection(_connectionString);
-        return await connection.QueryAsync<Patient>("SELECT * FROM Patient ORDER BY Furigana, Name");
+        return await connection.QueryAsync<Patient>(
+            "SELECT * FROM Patient WHERE Status = @Status ORDER BY Furigana, Name",
+            new { Status = PatientStatus.Admitted });
+    }
+    
+    public async Task<IEnumerable<Patient>> GetAllPatientsIncludingAllStatusAsync()
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        return await connection.QueryAsync<Patient>(
+            "SELECT * FROM Patient ORDER BY Furigana, Name");
     }
     
     public async Task<Patient?> GetByIdAsync(int id)
@@ -40,8 +49,8 @@ public class PatientRepository : IPatientRepository
         using var connection = new SqliteConnection(_connectionString);
         var searchPattern = $"%{searchTerm}%";
         return await connection.QueryAsync<Patient>(
-            "SELECT * FROM Patient WHERE Name LIKE @SearchPattern OR NationalHealthInsurance LIKE @SearchPattern OR Furigana LIKE @SearchPattern ORDER BY Furigana, Name",
-            new { SearchPattern = searchPattern });
+            "SELECT * FROM Patient WHERE Status = @Status AND (Name LIKE @SearchPattern OR NationalHealthInsurance LIKE @SearchPattern OR Furigana LIKE @SearchPattern) ORDER BY Furigana, Name",
+            new { Status = PatientStatus.Admitted, SearchPattern = searchPattern });
     }
     
     public async Task<int> CreateAsync(Patient patient)
@@ -64,7 +73,7 @@ public class PatientRepository : IPatientRepository
         }
         
         var sql = @"
-            INSERT INTO Patient (NationalHealthInsurance, Symbol, Number, InsurerName, Name, Furigana, BirthDate, FirstVisit, Admission, Discharge";
+            INSERT INTO Patient (NationalHealthInsurance, Symbol, Number, InsurerName, Name, Furigana, BirthDate, FirstVisit, Admission, Discharge, Status";
         
         if (hasCodeColumn)
         {
@@ -76,7 +85,7 @@ public class PatientRepository : IPatientRepository
         }
         
         sql += @")
-            VALUES (@NationalHealthInsurance, @Symbol, @Number, @InsurerName, @Name, @Furigana, @BirthDate, @FirstVisit, @Admission, @Discharge";
+            VALUES (@NationalHealthInsurance, @Symbol, @Number, @InsurerName, @Name, @Furigana, @BirthDate, @FirstVisit, @Admission, @Discharge, @Status";
         
         if (hasCodeColumn)
         {
@@ -101,6 +110,7 @@ public class PatientRepository : IPatientRepository
         parameters.Add("@FirstVisit", patient.FirstVisit);
         parameters.Add("@Admission", patient.Admission);
         parameters.Add("@Discharge", patient.Discharge);
+        parameters.Add("@Status", patient.Status ?? PatientStatus.Admitted);
         
         if (hasCodeColumn)
         {
@@ -137,7 +147,7 @@ public class PatientRepository : IPatientRepository
             UPDATE Patient 
             SET NationalHealthInsurance = @NationalHealthInsurance, Symbol = @Symbol, Number = @Number, InsurerName = @InsurerName,
                 Name = @Name, Furigana = @Furigana, BirthDate = @BirthDate, 
-                FirstVisit = @FirstVisit, Admission = @Admission, Discharge = @Discharge";
+                FirstVisit = @FirstVisit, Admission = @Admission, Discharge = @Discharge, Status = @Status";
         
         if (hasCodeColumn)
         {
@@ -162,6 +172,7 @@ public class PatientRepository : IPatientRepository
         parameters.Add("@FirstVisit", patient.FirstVisit);
         parameters.Add("@Admission", patient.Admission);
         parameters.Add("@Discharge", patient.Discharge);
+        parameters.Add("@Status", patient.Status ?? PatientStatus.Admitted);
         
         if (hasCodeColumn)
         {
@@ -202,15 +213,15 @@ public class PatientRepository : IPatientRepository
     {
         using var connection = new SqliteConnection(_connectionString);
         return await connection.QueryAsync<Patient>(
-            "SELECT * FROM Patient WHERE Discharge IS NOT NULL ORDER BY Furigana, Name");
+            "SELECT * FROM Patient WHERE Status = @Status ORDER BY Furigana, Name",
+            new { Status = PatientStatus.Discharged });
     }
     
     public async Task<IEnumerable<Patient>> GetTransferredPatientsAsync()
     {
         using var connection = new SqliteConnection(_connectionString);
-        // 仮に転棟は退院日が設定されているが、特定の条件で転棟とみなす
-        // ここでは退院日が設定されている患者を転棟患者として扱う例
         return await connection.QueryAsync<Patient>(
-            "SELECT * FROM Patient WHERE Discharge IS NOT NULL ORDER BY Furigana, Name");
+            "SELECT * FROM Patient WHERE Status = @Status ORDER BY Furigana, Name",
+            new { Status = PatientStatus.Transferred });
     }
-} 
+}

@@ -5,9 +5,9 @@
         x:Class="VitalDesk.App.Views.VitalInputDialog"
         x:DataType="vm:VitalInputViewModel"
         Width="620"
-        Height="620"
-        MinHeight="500"
-        MaxHeight="750"
+        Height="600"
+        MinHeight="400"
+        MaxHeight="600"
         SizeToContent="Manual"
         WindowStartupLocation="CenterOwner"
         Title="バイタルサイン入力">
@@ -16,40 +16,54 @@
                   VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled"
                   AllowAutoHide="True">
-        <StackPanel Spacing="20">
+        <StackPanel Spacing="10">
             
              <!-- 測定日時情報 -->
             
-                <StackPanel Spacing="5" MaxWidth="400" HorizontalAlignment="Center">           
-                    <!-- 日付選択 アコーディオン -->
-                    <ui:SettingsExpander Header="{Binding MeasuredAtFullWidthString}"
-                                        IsExpanded="False">
-                        <StackPanel Spacing="12" Margin="0,12,0,12">
-                            <!-- カレンダー -->
-                            <Calendar SelectedDate="{Binding MeasuredAtDate}"
-                                     FirstDayOfWeek="Sunday"
-                                     IsTodayHighlighted="True"
-                                     HorizontalAlignment="Center"/>
-                                     
-                            <!-- 日付クイック設定ボタン -->
-                            <StackPanel Orientation="Horizontal" 
-                                        HorizontalAlignment="Center"
-                                        Spacing="10">
-                                <Button Content="おととい"
-                                        Click="OnSetDayBeforeYesterdayClick"
-                                        FontSize="14"
-                                        Padding="16,8"/>
-                                <Button Content="昨日"
-                                        Click="OnSetYesterdayClick"
-                                        FontSize="14"
-                                        Padding="16,8"/>
-                                <Button Content="今日"
-                                        Click="OnSetTodayClick"
-                                        FontSize="14"
-                                        Padding="16,8"/>
-                            </StackPanel>
+                <StackPanel Spacing="5" MaxWidth="600" HorizontalAlignment="Center" Margin="0,0,0,0">           
+                    <!-- 日付選択 -->
+                    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="4"
+                            Padding="10">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="上書きしたい場合は日付を選択して保存ボタン" 
+                                       FontWeight="SemiBold"
+                                       FontSize="14"
+                                       HorizontalAlignment="Center"/>
+                            
+                            <!-- 日付表示とボタン -->
+                            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                <!-- 日付表示 -->
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding MeasuredAtFullWidthString}"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Padding="20,10"/>
+                                
+                                <!-- 上ボタン（日付を1日進める） -->
+                                <Button Grid.Row="0" Grid.Column="2"
+                                        Content="▶︎"
+                                        FontSize="12"
+                                        Width="30"
+                                        Height="30"
+                                        Padding="0"
+                                        Click="OnDateUpClick"
+                                        ToolTip.Tip="日付を1日進める"/>
+                                
+                                <!-- 下ボタン（日付を1日戻す） -->
+                                <Button Grid.Row="0" Grid.Column="0"
+                                        Content="◀︎"
+                                        FontSize="12"
+                                        Width="30"
+                                        Height="30"
+                                        Padding="0"
+                                        Click="OnDateDownClick"
+                                        ToolTip.Tip="日付を1日戻す"/>
+                            </Grid>
                         </StackPanel>
-                    </ui:SettingsExpander>
+                    </Border>
                 </StackPanel>
             
             <!-- バイタルサイン入力 - 2列レイアウト -->
@@ -57,22 +71,17 @@
                     CornerRadius="4"
                     Padding="20">
                 <StackPanel Spacing="20">
-                    <TextBlock Text="バイタルサイン入力"
-                               FontWeight="SemiBold"
-                               FontSize="18"
-                               HorizontalAlignment="Center"/>
-                    
                     <!-- 2列グリッドレイアウト -->
-                    <Grid ColumnDefinitions="*,20,*" RowDefinitions="Auto,20,Auto">
+                    <Grid ColumnDefinitions="*,20,*" RowDefinitions="Auto,20,Auto,20,Auto">
                         
                         <!-- 左列: 体温と脈拍 -->
-                        <StackPanel Grid.Column="0" Spacing="20">
+                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="20">
                             
                             <!-- 体温 -->
                             <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
                                     CornerRadius="4"
-                                    Padding="16"
-                                    Height="150">
+                                    Padding="10"
+                                    Height="120">
                                 <StackPanel Spacing="12" VerticalAlignment="Center">
                                     <TextBlock Text="体温" 
                                                FontWeight="SemiBold"
@@ -86,19 +95,14 @@
                                                    FormatString="F1"
                                                    FontSize="16"
                                                    Height="40"/>
-                                    <TextBlock Text="{Binding Temperature, StringFormat='{}{0}°C'}"
-                                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                               FontSize="16"
-                                               FontWeight="SemiBold"
-                                               HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                             
                             <!-- 脈拍 -->
                             <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
                                     CornerRadius="4"
-                                    Padding="16"
-                                    Height="150">
+                                    Padding="10"
+                                    Height="100">
                                 <StackPanel Spacing="12" VerticalAlignment="Center">
                                     <TextBlock Text="脈拍" 
                                                FontWeight="SemiBold"
@@ -110,25 +114,19 @@
                                                    Increment="1"
                                                    FontSize="16"
                                                    Height="40"/>
-                                    <TextBlock Text="{Binding Pulse, StringFormat='{}{0} bpm'}"
-                                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                               FontSize="16"
-                                               FontWeight="SemiBold"
-                                               HorizontalAlignment="Center"
-                                               IsVisible="{Binding Pulse, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                 </StackPanel>
                             </Border>
                             
                         </StackPanel>
                         
                         <!-- 右列: 血圧と体重 -->
-                        <StackPanel Grid.Column="2" Spacing="20">
+                        <StackPanel Grid.Row="0" Grid.Column="2" Spacing="20">
                             
                             <!-- 血圧 -->
                             <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
                                     CornerRadius="4"
-                                    Padding="16"
-                                    Height="150">
+                                    Padding="10"
+                                    Height="120">
                                 <StackPanel Spacing="12" VerticalAlignment="Center">
                                     <TextBlock Text="血圧" 
                                                FontWeight="SemiBold"
@@ -165,21 +163,6 @@
                                                            FontSize="14"
                                                            Height="35"/>
                                         </StackPanel>
-                                        
-                                        <TextBlock Grid.Row="1" Grid.ColumnSpan="3"
-                                                   Margin="0,8,0,0"
-                                                   FontSize="16"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                                   HorizontalAlignment="Center"
-                                                   IsVisible="{Binding Systolic, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                            <TextBlock.Text>
-                                                <MultiBinding StringFormat="{}{0}/{1} mmHg">
-                                                    <Binding Path="Systolic"/>
-                                                    <Binding Path="Diastolic"/>
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -187,8 +170,8 @@
                             <!-- 体重 -->
                             <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
                                     CornerRadius="4"
-                                    Padding="16"
-                                    Height="150">
+                                    Padding="10"
+                                    Height="100">
                                 <StackPanel Spacing="12" VerticalAlignment="Center">
                                     <TextBlock Text="体重" 
                                                FontWeight="SemiBold"
@@ -201,23 +184,132 @@
                                                    FormatString="F1"
                                                    FontSize="16"
                                                    Height="40"/>
-                                    <TextBlock Text="{Binding Weight, StringFormat='{}{0} kg'}"
-                                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                               FontSize="16"
-                                               FontWeight="SemiBold"
-                                               HorizontalAlignment="Center"
-                                               IsVisible="{Binding Weight, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                 </StackPanel>
                             </Border>
                             
                         </StackPanel>
                         
+                        <!-- 3行目 左列: 食事 -->
+                        <Border Grid.Row="2" Grid.Column="0"
+                                Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="4"
+                                Padding="10"
+                                Height="120">
+                            <StackPanel Spacing="12" VerticalAlignment="Center">
+                                <TextBlock Text="食事" 
+                                           FontWeight="SemiBold"
+                                           FontSize="16"
+                                           HorizontalAlignment="Center"/>
+                                <UniformGrid Columns="3" Rows="1" HorizontalAlignment="Center" Margin="0,4,0,0">
+                                    <!-- 朝食 -->
+                                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                        <TextBlock Text="朝食" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   HorizontalAlignment="Center"/>
+                                        <ComboBox SelectedItem="{Binding Breakfast, Mode=TwoWay}"
+                                                  Width="60"
+                                                  HorizontalAlignment="Center">
+                                            <x:String>○</x:String>
+                                            <x:String>×</x:String>  
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <!-- 昼食 -->
+                                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                        <TextBlock Text="昼食" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   HorizontalAlignment="Center"/>
+                                        <ComboBox SelectedItem="{Binding Lunch, Mode=TwoWay}"
+                                                  Width="60"
+                                                  HorizontalAlignment="Center">
+                                            <x:String>○</x:String>
+                                            <x:String>×</x:String>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <!-- 夕食 -->
+                                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                        <TextBlock Text="夕食" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   HorizontalAlignment="Center"/>
+                                        <ComboBox SelectedItem="{Binding Dinner, Mode=TwoWay}"
+                                                  Width="60"
+                                                  HorizontalAlignment="Center">
+                                            <x:String>○</x:String>
+                                            <x:String>×</x:String>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- 3行目 右列: 睡眠と便通 -->
+                        <Border Grid.Row="2" Grid.Column="2"
+                                Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="4"
+                                Padding="10"
+                                Height="120">
+                            <StackPanel Spacing="12" VerticalAlignment="Center">
+                                <TextBlock Text="睡眠・便通" 
+                                           FontWeight="SemiBold"
+                                           FontSize="16"
+                                           HorizontalAlignment="Center"/>
+                                
+                                <Grid ColumnDefinitions="*,20,*" RowDefinitions="Auto,Auto,Auto">
+                                    <!-- 睡眠 -->
+                                    <StackPanel Grid.Column="0" Spacing="6">
+                                        <TextBlock Text="睡眠" FontSize="12" 
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   HorizontalAlignment="Center"/>
+                                        <NumericUpDown Value="{Binding Sleep}"
+                                                       Minimum="0"
+                                                       Maximum="24"
+                                                       Increment="1"
+                                                       FontSize="14"
+                                                       Height="35"/>
+                                    </StackPanel>
+                                    
+                                    <!-- 便通 -->
+                                    <StackPanel Grid.Column="2" Spacing="6">
+                                        <TextBlock Text="便通" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   HorizontalAlignment="Center"/>
+                                        <NumericUpDown Value="{Binding BowelMovement}"
+                                                       Minimum="0"
+                                                       Maximum="20"
+                                                       Increment="1"
+                                                       FormatString="N0"
+                                                       ShowButtonSpinner="True"
+                                                       FontSize="14"
+                                                       Height="35"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- 4行目: 備考 (2列にまたがる) -->
+                        <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
+                                Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="4"
+                                Padding="10">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="備考" 
+                                           FontWeight="SemiBold"
+                                           FontSize="16"
+                                           HorizontalAlignment="Center"/>
+                                <TextBox Text="{Binding Note}"
+                                         FontSize="14"
+                                         MinHeight="80"
+                                         TextWrapping="Wrap"
+                                         AcceptsReturn="True"
+                                         Watermark="備考を入力（任意）"/>
+                            </StackPanel>
+                        </Border>
+                        
                     </Grid>
+                    
                 </StackPanel>
             </Border>
             
            
-            
 
             <!-- ボタン -->
             <StackPanel Orientation="Horizontal" 
@@ -240,4 +332,4 @@
             
         </StackPanel>
     </ScrollViewer>
-</Window> 
+</Window>

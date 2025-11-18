@@ -13,7 +13,8 @@ public class Program
     public static void Main(string[] args)
     {
         // コマンドライン引数でサンプルデータ生成を実行
-        if (args.Length > 0 && args[0] == "generate-sample")
+        // --generate-sample または generate-sample の形式に対応
+        if (args.Length > 0 && (args[0] == "--generate-sample" || args[0] == "generate-sample"))
         {
             GenerateSampleDataAsync(args).GetAwaiter().GetResult();
             return;
@@ -27,10 +28,13 @@ public class Program
         var patientCount = 50;
         var vitalDays = 90;
         
-        if (args.Length > 1 && int.TryParse(args[1], out var count))
+        // 引数のインデックスを調整（--generate-sample の場合は1から、generate-sample の場合は1から）
+        var startIndex = args[0].StartsWith("--") ? 1 : 1;
+        
+        if (args.Length > startIndex && int.TryParse(args[startIndex], out var count))
             patientCount = count;
         
-        if (args.Length > 2 && int.TryParse(args[2], out var days))
+        if (args.Length > startIndex + 1 && int.TryParse(args[startIndex + 1], out var days))
             vitalDays = days;
         
         Console.WriteLine("======================================");

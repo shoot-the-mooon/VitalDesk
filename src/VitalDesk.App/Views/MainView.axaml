@@ -75,7 +75,7 @@
                       HeadersVisibility="Column">
               
               <DataGrid.Columns>
-                <DataGridTextColumn Header="番号" 
+                <DataGridTextColumn Header="患者ID" 
                                     Binding="{Binding Number}" 
                                     Width="80"/>
                 
@@ -204,7 +204,7 @@
                       HeadersVisibility="Column">
               
               <DataGrid.Columns>
-                <DataGridTextColumn Header="番号" 
+                <DataGridTextColumn Header="患者ID" 
                                     Binding="{Binding Number}" 
                                     Width="80"/>
                 
@@ -291,7 +291,7 @@
                       HeadersVisibility="Column">
               
               <DataGrid.Columns>
-                <DataGridTextColumn Header="番号" 
+                <DataGridTextColumn Header="患者ID" 
                                     Binding="{Binding Number}" 
                                     Width="80"/>
                 

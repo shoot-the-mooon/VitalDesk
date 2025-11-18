@@ -8,7 +8,7 @@ namespace VitalDesk.Core.Models;
 public class Patient
 {
     public int Id { get; set; }
-    public string Number { get; set; } = string.Empty; // 番号
+    public string Number { get; set; } = string.Empty; // 患者ID
     public string Name { get; set; } = string.Empty;
     public string Furigana { get; set; } = string.Empty;
     public DateTime? BirthDate { get; set; }

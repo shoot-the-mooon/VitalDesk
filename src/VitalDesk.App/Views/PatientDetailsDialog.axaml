@@ -39,7 +39,7 @@
                         </Style>
                     </Grid.Styles>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="番号："/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="患者ID："/>
                     <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Patient.Number}"/>
                                     
                     <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="患者名："/>

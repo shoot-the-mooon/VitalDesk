@@ -60,7 +60,7 @@ public class SampleDataService
             var name = $"{lastName} {firstName}";
             var furigana = GenerateFurigana(lastName, firstName);
             
-            // 番号: 6-8桁の数字（文字列）
+            // 患者ID: 6-8桁の数字（文字列）
             var number = random.Next(100000, 99999999).ToString();
 
             // 年齢は20-90歳

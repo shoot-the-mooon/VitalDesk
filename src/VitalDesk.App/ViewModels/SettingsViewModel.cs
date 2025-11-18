@@ -246,7 +246,7 @@ public partial class SettingsViewModel : ViewModelBase
             var filePath = Path.Combine(exportFolder, fileName);
 
             var csv = new StringBuilder();
-            csv.AppendLine("番号,患者名,フリガナ,生年月日,年齢,入院日");
+            csv.AppendLine("患者ID,患者名,フリガナ,生年月日,年齢,入院日");
 
             foreach (var patient in patients)
             {

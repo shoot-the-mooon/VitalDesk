@@ -28,9 +28,9 @@
 
             <!-- Number -->
             <StackPanel Spacing="8">
-                <TextBlock Text="番号" FontWeight="SemiBold"/>
+                <TextBlock Text="患者ID" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Number}"
-                         Watermark="番号を入力してください..."/>
+                         Watermark="患者IDを入力してください..."/>
             </StackPanel>
 
             <!-- Patient Name -->

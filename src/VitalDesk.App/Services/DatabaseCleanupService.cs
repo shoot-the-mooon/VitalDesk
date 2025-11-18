@@ -32,28 +32,16 @@ public class DatabaseCleanupService
                     needsUpdate = true;
                 }
                 
-                if (IsInvalidDate(patient.FirstVisit))
-                {
-                    patient.FirstVisit = DateTime.Now;
-                    needsUpdate = true;
-                }
-                
                 if (IsInvalidDate(patient.Admission))
                 {
                     patient.Admission = null;
                     needsUpdate = true;
                 }
                 
-                if (IsInvalidDate(patient.Discharge))
-                {
-                    patient.Discharge = null;
-                    needsUpdate = true;
-                }
-                
                 if (needsUpdate)
                 {
                     await _patientRepository.UpdateAsync(patient);
-                    System.Diagnostics.Debug.WriteLine($"Cleaned up patient {patient.NationalHealthInsurance} dates");
+                    System.Diagnostics.Debug.WriteLine($"Cleaned up patient {patient.Number} dates");
                 }
             }
         }

@@ -15,18 +15,7 @@ public partial class PatientInputViewModel : ObservableValidator
     private readonly IPatientRepository _patientRepository;
     
     [ObservableProperty]
-    [Required(ErrorMessage = "National Health Insurance is required")]
-    [MinLength(1, ErrorMessage = "National Health Insurance cannot be empty")]
-    private string _nationalHealthInsurance = string.Empty;
-    
-    [ObservableProperty]
-    private string _symbol = string.Empty;
-    
-    [ObservableProperty]
     private string _number = string.Empty;
-    
-    [ObservableProperty]
-    private string _insurerName = string.Empty;
     
     [ObservableProperty]
     [Required(ErrorMessage = "Patient name is required")]
@@ -42,13 +31,7 @@ public partial class PatientInputViewModel : ObservableValidator
     private DateTimeOffset? _birthDate;
     
     [ObservableProperty]
-    private DateTimeOffset? _firstVisit = DateTimeOffset.Now;
-    
-    [ObservableProperty]
     private DateTimeOffset? _admission;
-    
-    [ObservableProperty]
-    private DateTimeOffset? _discharge;
     
     [ObservableProperty]
     private bool _isValid = true;
@@ -74,16 +57,11 @@ public partial class PatientInputViewModel : ObservableValidator
     {
         IsEditMode = true;
         PatientId = patient.Id;
-        NationalHealthInsurance = patient.NationalHealthInsurance;
-        Symbol = patient.Symbol ?? string.Empty;
         Number = patient.Number ?? string.Empty;
-        InsurerName = patient.InsurerName ?? string.Empty;
         Name = patient.Name;
         Furigana = patient.Furigana ?? string.Empty;
         BirthDate = patient.BirthDate?.ToDateTimeOffset();
-        FirstVisit = patient.FirstVisit?.ToDateTimeOffset();
         Admission = patient.Admission?.ToDateTimeOffset();
-        Discharge = patient.Discharge?.ToDateTimeOffset();
         
         ValidateAllProperties();
     }
@@ -107,16 +85,11 @@ public partial class PatientInputViewModel : ObservableValidator
             var patient = new Patient
             {
                 Id = PatientId ?? 0,
-                NationalHealthInsurance = NationalHealthInsurance.Trim(),
-                Symbol = Symbol.Trim(),
                 Number = Number.Trim(),
-                InsurerName = InsurerName.Trim(),
                 Name = Name.Trim(),
                 Furigana = Furigana.Trim(),
                 BirthDate = BirthDate?.DateTime,
-                FirstVisit = FirstVisit?.DateTime,
                 Admission = Admission?.DateTime,
-                Discharge = Discharge?.DateTime,
                 Status = PatientStatus.Admitted // デフォルトは入院中（退院・転棟はボタンから変更）
             };
             
@@ -132,15 +105,6 @@ public partial class PatientInputViewModel : ObservableValidator
             }
             else
             {
-                // Check if national health insurance already exists
-                var existingPatient = await _patientRepository.GetByCodeAsync(patient.NationalHealthInsurance);
-                if (existingPatient != null)
-                {
-                    ValidationErrors = "National Health Insurance already exists. Please use a different number.";
-                    IsValid = false;
-                    return;
-                }
-                
                 var id = await _patientRepository.CreateAsync(patient);
                 success = id > 0;
                 if (success)
@@ -177,27 +141,9 @@ public partial class PatientInputViewModel : ObservableValidator
         RequestClose?.Invoke(this, null);
     }
     
-    partial void OnNationalHealthInsuranceChanged(string value)
-    {
-        ValidateProperty(value, nameof(NationalHealthInsurance));
-        UpdateValidationState();
-    }
-    
-    partial void OnSymbolChanged(string value)
-    {
-        ValidateProperty(value, nameof(Symbol));
-        UpdateValidationState();
-    }
-    
     partial void OnNumberChanged(string value)
     {
         ValidateProperty(value, nameof(Number));
-        UpdateValidationState();
-    }
-    
-    partial void OnInsurerNameChanged(string value)
-    {
-        ValidateProperty(value, nameof(InsurerName));
         UpdateValidationState();
     }
     

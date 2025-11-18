@@ -281,7 +281,7 @@ public partial class MainViewModel : ViewModelBase
             
             var dialog = new Views.ConfirmationDialog(
                 "患者削除の確認",
-                $"患者「{patient.Name}」（国保: {patient.NationalHealthInsurance}）を削除しますか？\n\nこの操作は取り消せません。",
+                $"患者「{patient.Name}」（番号: {patient.Number}）を削除しますか？\n\nこの操作は取り消せません。",
                 "削除",
                 "キャンセル"
             );
@@ -459,7 +459,7 @@ public partial class MainViewModel : ViewModelBase
             // 確認ダイアログを表示
             var dialog = new Views.ConfirmationDialog(
                 "再入院の確認",
-                $"患者「{patient.Name}」（国保: {patient.NationalHealthInsurance}）を再入院させますか？",
+                $"患者「{patient.Name}」（番号: {patient.Number}）を再入院させますか？",
                 "再入院",
                 "キャンセル"
             );

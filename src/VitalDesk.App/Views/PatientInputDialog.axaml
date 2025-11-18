@@ -26,33 +26,11 @@
                        FontWeight="Bold"
                        Margin="0,0,0,16"/>
 
-            <!-- National Health Insurance -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="国保 （必須）" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding NationalHealthInsurance}"
-                         Watermark="国保番号を入力してください..."
-                         IsEnabled="{Binding !IsEditMode}"/>
-            </StackPanel>
-
-            <!-- Symbol -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="記号" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Symbol}"
-                         Watermark="記号を入力してください..."/>
-            </StackPanel>
-
             <!-- Number -->
             <StackPanel Spacing="8">
                 <TextBlock Text="番号" FontWeight="SemiBold"/>
                 <TextBox Text="{Binding Number}"
                          Watermark="番号を入力してください..."/>
-            </StackPanel>
-
-            <!-- Insurer Name -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="保険者名" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding InsurerName}"
-                         Watermark="保険者名を入力してください..."/>
             </StackPanel>
 
             <!-- Patient Name -->
@@ -76,24 +54,10 @@
                             HorizontalAlignment="Stretch"/>
             </StackPanel>
 
-            <!-- First Visit -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="初診日" FontWeight="SemiBold"/>
-                <DatePicker SelectedDate="{Binding FirstVisit}"
-                            HorizontalAlignment="Stretch"/>
-            </StackPanel>
-
             <!-- Admission -->
             <StackPanel Spacing="8">
                 <TextBlock Text="入院日" FontWeight="SemiBold"/>
                 <DatePicker SelectedDate="{Binding Admission}"
-                            HorizontalAlignment="Stretch"/>
-            </StackPanel>
-
-            <!-- Discharge -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="退院日" FontWeight="SemiBold"/>
-                <DatePicker SelectedDate="{Binding Discharge}"
                             HorizontalAlignment="Stretch"/>
             </StackPanel>
 

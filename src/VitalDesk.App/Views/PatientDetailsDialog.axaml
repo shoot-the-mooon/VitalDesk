@@ -23,7 +23,7 @@
             <ui:SettingsExpander Header="{Binding Patient.Name}"
                                 IconSource="Contact"
                                 IsExpanded="False">
-                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" 
+                <Grid RowDefinitions="Auto,Auto,Auto" 
                       ColumnDefinitions="Auto,*,Auto,*" 
                       Margin="16">
                     <Grid.Styles>
@@ -39,18 +39,21 @@
                         </Style>
                     </Grid.Styles>
 
-                     <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="患者名："/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Patient.Name}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="番号："/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="value" Text="{Binding Patient.Number}"/>
                                     
-                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="フリガナ："/>
-                    <TextBlock Grid.Row="0" Grid.Column="3" Classes="value" Text="{Binding Patient.Furigana}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="患者名："/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" Classes="value" Text="{Binding Patient.Name}"/>
                                     
-                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="生年月日："/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" 
+                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="フリガナ："/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding Patient.Furigana}"/>
+                                    
+                    <TextBlock Grid.Row="1" Grid.Column="2" Classes="label" Text="生年月日："/>
+                    <TextBlock Grid.Row="1" Grid.Column="3" Classes="value" 
                                Text="{Binding Patient.BirthDate, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                     
-                    <TextBlock Grid.Row="1" Grid.Column="2" Classes="label" Text="年齢："/>
-                    <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal" Spacing="2" Classes="value">
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="年齢："/>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="2" Classes="value">
                         <TextBlock Text="{Binding PatientAgeNumber}"
                                    FontFamily="{StaticResource MonospaceFont}"
                                    FontWeight="SemiBold"
@@ -61,30 +64,9 @@
                                    VerticalAlignment="Center"/>
                     </StackPanel>
                 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="国保："/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding Patient.NationalHealthInsurance}"/>
-
-                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="label" Text="記号："/>
-                    <TextBlock Grid.Row="2" Grid.Column="3" Classes="value" Text="{Binding Patient.Symbol}"/>
-                    
-                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="番号："/>
-                    <TextBlock Grid.Row="3" Grid.Column="1" Classes="value" Text="{Binding Patient.Number}"/>
-
-                    <TextBlock Grid.Row="3" Grid.Column="2" Classes="label" Text="保険者名："/>
-                    <TextBlock Grid.Row="3" Grid.Column="3" Classes="value" 
-                               Text="{Binding Patient.InsurerName}"/>
-                    
-                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="初診日："/>
-                    <TextBlock Grid.Row="4" Grid.Column="1" Classes="value" 
-                               Text="{Binding Patient.FirstVisit, StringFormat='{}{0:yyyy/MM/dd}'}"/>
-                    
-                    <TextBlock Grid.Row="4" Grid.Column="2" Classes="label" Text="入院日："/>
-                    <TextBlock Grid.Row="4" Grid.Column="3" Classes="value" 
+                    <TextBlock Grid.Row="2" Grid.Column="2" Classes="label" Text="入院日："/>
+                    <TextBlock Grid.Row="2" Grid.Column="3" Classes="value" 
                                Text="{Binding Patient.Admission, StringFormat='{}{0:yyyy/MM/dd}'}"/>
-                    
-                    <TextBlock Grid.Row="5" Grid.Column="0" Classes="label" Text="退院日："/>
-                    <TextBlock Grid.Row="5" Grid.Column="1" Classes="value" 
-                               Text="{Binding Patient.Discharge, StringFormat='{}{0:yyyy/MM/dd}'}"/>
                 </Grid>
             </ui:SettingsExpander>
             

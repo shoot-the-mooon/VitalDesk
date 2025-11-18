@@ -38,19 +38,19 @@ public class CsvBackupService
 
         var csv = new StringBuilder();
         
-        // ヘッダー行（26フィールド: 0-25）
-        csv.AppendLine("DataType,PatientId,NationalHealthInsurance,Symbol,Number,InsurerName,Name,Furigana,BirthDate,FirstVisit,Admission,Discharge,Status,VitalId,MeasuredAt,Temperature,Pulse,Systolic,Diastolic,Weight,Breakfast,Lunch,Dinner,Sleep,BowelMovement,Note");
+        // ヘッダー行（21フィールド: 0-20）
+        csv.AppendLine("DataType,PatientId,Number,Name,Furigana,BirthDate,Admission,Status,VitalId,MeasuredAt,Temperature,Pulse,Systolic,Diastolic,Weight,Breakfast,Lunch,Dinner,Sleep,BowelMovement,Note");
 
-        // 患者データを出力（13フィールド + 空13フィールド = 26フィールド）
+        // 患者データを出力（7フィールド + 空14フィールド = 21フィールド）
         foreach (var patient in patients.OrderBy(p => p.Furigana))
         {
-            csv.AppendLine($"Patient,{patient.Id},{EscapeCsvField(patient.NationalHealthInsurance)},{EscapeCsvField(patient.Symbol)},{EscapeCsvField(patient.Number)},{EscapeCsvField(patient.InsurerName)},{EscapeCsvField(patient.Name)},{EscapeCsvField(patient.Furigana)},{FormatDate(patient.BirthDate)},{FormatDate(patient.FirstVisit)},{FormatDate(patient.Admission)},{FormatDate(patient.Discharge)},{EscapeCsvField(patient.Status)},,,,,,,,,,,,,");
+            csv.AppendLine($"Patient,{patient.Id},{EscapeCsvField(patient.Number)},{EscapeCsvField(patient.Name)},{EscapeCsvField(patient.Furigana)},{FormatDate(patient.BirthDate)},{FormatDate(patient.Admission)},{EscapeCsvField(patient.Status)},,,,,,,,,,,,,,");
         }
 
-        // バイタルデータを出力（2フィールド + 空11フィールド + 13フィールド = 26フィールド）
+        // バイタルデータを出力（2フィールド + 空5フィールド + 13フィールド + Note = 21フィールド）
         foreach (var vital in vitals.OrderBy(v => v.PatientId).ThenBy(v => v.MeasuredAt))
         {
-            csv.AppendLine($"Vital,{vital.PatientId},,,,,,,,,,,,{vital.Id},{FormatDateTime(vital.MeasuredAt)},{vital.Temperature},{vital.Pulse},{vital.Systolic},{vital.Diastolic},{vital.Weight},{EscapeCsvField(vital.Breakfast)},{EscapeCsvField(vital.Lunch)},{EscapeCsvField(vital.Dinner)},{vital.Sleep},{vital.BowelMovement},{EscapeCsvField(vital.Note)}");
+            csv.AppendLine($"Vital,{vital.PatientId},,,,,,{vital.Id},{FormatDateTime(vital.MeasuredAt)},{vital.Temperature},{vital.Pulse},{vital.Systolic},{vital.Diastolic},{vital.Weight},{EscapeCsvField(vital.Breakfast)},{EscapeCsvField(vital.Lunch)},{EscapeCsvField(vital.Dinner)},{vital.Sleep},{vital.BowelMovement},{EscapeCsvField(vital.Note)}");
         }
 
         await File.WriteAllTextAsync(backupPath, csv.ToString(), Encoding.UTF8);
@@ -102,22 +102,14 @@ public class CsvBackupService
                 var line = lines[i].Trim();
                 if (string.IsNullOrEmpty(line)) continue;
 
-            var fields = ParseCsvLine(line);
-            
-            // 25フィールドの場合は古いフォーマット（Noteなし）として扱う
-            if (fields.Length == 25)
-            {
-                // Noteフィールドを空文字列として追加
-                var expandedFields = new string[26];
-                Array.Copy(fields, expandedFields, 25);
-                expandedFields[25] = "";
-                fields = expandedFields;
-            }
-            else if (fields.Length < 25)
-            {
-                skippedLines++;
-                continue;
-            }
+                var fields = ParseCsvLine(line);
+                
+                // 新しいフォーマットは21フィールド（Note含む）
+                if (fields.Length < 21)
+                {
+                    skippedLines++;
+                    continue;
+                }
 
                 var dataType = fields[0];
 
@@ -126,17 +118,12 @@ public class CsvBackupService
                     var oldPatientId = int.Parse(fields[1]);
                     var patient = new Patient
                     {
-                        NationalHealthInsurance = fields[2],
-                        Symbol = fields[3],
-                        Number = fields[4],
-                        InsurerName = fields[5],
-                        Name = fields[6],
-                        Furigana = fields[7],
-                        BirthDate = ParseDate(fields[8]),
-                        FirstVisit = ParseDate(fields[9]),
-                        Admission = ParseDate(fields[10]),
-                        Discharge = ParseDate(fields[11]),
-                        Status = !string.IsNullOrEmpty(fields[12]) ? fields[12] : PatientStatus.Admitted
+                        Number = fields[2],
+                        Name = fields[3],
+                        Furigana = fields[4],
+                        BirthDate = ParseDate(fields[5]),
+                        Admission = ParseDate(fields[6]),
+                        Status = !string.IsNullOrEmpty(fields[7]) ? fields[7] : PatientStatus.Admitted
                     };
 
                     var newPatientId = await _patientRepository.CreateAsync(patient);
@@ -151,18 +138,18 @@ public class CsvBackupService
                         var vital = new Vital
                         {
                             PatientId = patientIdMapping[oldPatientId],
-                            MeasuredAt = ParseDateTime(fields[14]),
-                            Temperature = ParseDouble(fields[15]),
-                            Pulse = ParseInt(fields[16]),
-                            Systolic = ParseInt(fields[17]),
-                            Diastolic = ParseInt(fields[18]),
-                            Weight = ParseDouble(fields[19]),
-                            Breakfast = fields[20],
-                            Lunch = fields[21],
-                            Dinner = fields[22],
-                            Sleep = ParseInt(fields[23]),
-                            BowelMovement = ParseInt(fields[24]),
-                            Note = fields[25]
+                            MeasuredAt = ParseDateTime(fields[9]),
+                            Temperature = ParseDouble(fields[10]),
+                            Pulse = ParseInt(fields[11]),
+                            Systolic = ParseInt(fields[12]),
+                            Diastolic = ParseInt(fields[13]),
+                            Weight = ParseDouble(fields[14]),
+                            Breakfast = fields[15],
+                            Lunch = fields[16],
+                            Dinner = fields[17],
+                            Sleep = ParseInt(fields[18]),
+                            BowelMovement = ParseInt(fields[19]),
+                            Note = fields.Length > 20 ? fields[20] : ""
                         };
 
                         var vitalId = await _vitalRepository.CreateAsync(vital);

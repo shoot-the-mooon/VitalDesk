@@ -50,15 +50,6 @@ public class SampleDataService
             "吉田", "山口", "斎藤", "松本", "井上", "木村", "林", "清水", "山本", "中野",
             "阿部", "橋本", "石川", "前田", "藤田", "後藤", "岡田", "長谷川", "村上", "近藤"
         };
-        
-        // 保険者名のサンプル
-        var insurerNames = new[] { 
-            "東京都国民健康保険", "大阪市国民健康保険", "横浜市国民健康保険", 
-            "名古屋市国民健康保険", "福岡市国民健康保険", "神戸市国民健康保険", 
-            "札幌市国民健康保険", "京都市国民健康保険", "広島市国民健康保険", 
-            "仙台市国民健康保険", "川崎市国民健康保険", "さいたま市国民健康保険",
-            "千葉市国民健康保険", "北九州市国民健康保険", "新潟市国民健康保険"
-        };
 
         Console.WriteLine($"サンプルデータ生成開始: {patientCount}人の患者、{daysOfVitals}日分のバイタル");
 
@@ -68,32 +59,17 @@ public class SampleDataService
             var firstName = firstNames[random.Next(firstNames.Length)];
             var name = $"{lastName} {firstName}";
             var furigana = GenerateFurigana(lastName, firstName);
-            var insurerName = insurerNames[random.Next(insurerNames.Length)];
-            
-            // 国保番号: 6桁の市区町村コード + 4桁の個人番号
-            var nationalHealthInsurance = $"{random.Next(100000, 999999)}{random.Next(1000, 9999)}";
-            
-            // 記号: 2-4文字のアルファベット + 3-5桁の数字
-            var symbolChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            var symbolLength = random.Next(2, 5);
-            var symbolLetters = new string(Enumerable.Range(0, symbolLength)
-                .Select(_ => symbolChars[random.Next(symbolChars.Length)])
-                .ToArray());
-            var symbolNumbers = random.Next(100, 99999).ToString();
-            var symbol = $"{symbolLetters}{symbolNumbers}";
             
             // 番号: 6-8桁の数字（文字列）
             var number = random.Next(100000, 99999999).ToString();
 
             // 年齢は20-90歳
             var birthDate = DateTime.Now.AddYears(-random.Next(20, 91)).AddDays(-random.Next(0, 365));
-            var firstVisit = DateTime.Now.AddDays(-random.Next(90, 730)); // 3ヶ月〜2年前
             var admission = DateTime.Now.AddDays(-random.Next(0, daysOfVitals)); // バイタル期間内に入院
 
             // ステータスの決定
             var statusRandom = random.NextDouble();
             string status;
-            DateTime? discharge = null;
             
             if (statusRandom < 0.70) // 70%が入院中
             {
@@ -102,26 +78,19 @@ public class SampleDataService
             else if (statusRandom < 0.85) // 15%が退院
             {
                 status = PatientStatus.Discharged;
-                discharge = admission.AddDays(random.Next(1, daysOfVitals / 2));
             }
             else // 15%が転棟
             {
                 status = PatientStatus.Transferred;
-                discharge = admission.AddDays(random.Next(1, daysOfVitals / 2));
             }
 
             var patient = new Patient
             {
-                NationalHealthInsurance = nationalHealthInsurance,
-                Symbol = symbol,
                 Number = number,
-                InsurerName = insurerName,
                 Name = name,
                 Furigana = furigana,
                 BirthDate = birthDate,
-                FirstVisit = firstVisit,
                 Admission = admission,
-                Discharge = discharge,
                 Status = status
             };
             

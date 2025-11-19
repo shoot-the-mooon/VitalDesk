@@ -26,10 +26,31 @@
                             CornerRadius="4"
                             Padding="10">
                         <StackPanel Spacing="15">
-                            <TextBlock Text="上書きしたい場合は日付を選択して保存ボタン" 
+                            <TextBlock Text="測定日時を選択してください" 
                                        FontWeight="SemiBold"
                                        FontSize="14"
-                                       HorizontalAlignment="Center"/>
+                                       HorizontalAlignment="Center"
+                                       IsVisible="{Binding !IsEditMode}"/>
+                            
+                            <!-- 既存データ警告 -->
+                            <Border Background="{DynamicResource InfoBarWarningSeverityBackgroundBrush}"
+                                    CornerRadius="4"
+                                    Padding="12"
+                                    IsVisible="{Binding HasExistingData}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="{Binding ExistingDataMessage}"
+                                               Foreground="{DynamicResource InfoBarWarningSeverityTitleForegroundBrush}"
+                                               TextWrapping="Wrap"
+                                               FontSize="13"/>
+                                    <Button Content="編集モードで開く"
+                                            Command="{Binding OpenEditModeFromExistingCommand}"
+                                            HorizontalAlignment="Center"
+                                            Padding="16,8"
+                                            MinWidth="150"
+                                            Background="Orange"
+                                            FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Border>
                             
                             <!-- 日付表示とボタン -->
                             <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
@@ -50,7 +71,8 @@
                                         Height="30"
                                         Padding="0"
                                         Click="OnDateUpClick"
-                                        ToolTip.Tip="日付を1日進める"/>
+                                        ToolTip.Tip="日付を1日進める"
+                                        IsEnabled="{Binding !IsEditMode}"/>
                                 
                                 <!-- 下ボタン（日付を1日戻す） -->
                                 <Button Grid.Row="0" Grid.Column="0"
@@ -60,7 +82,8 @@
                                         Height="30"
                                         Padding="0"
                                         Click="OnDateDownClick"
-                                        ToolTip.Tip="日付を1日戻す"/>
+                                        ToolTip.Tip="日付を1日戻す"
+                                        IsEnabled="{Binding !IsEditMode}"/>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -324,7 +347,6 @@
                 <Button Content="{Binding SaveButtonText}" 
                         Command="{Binding SaveCommand}"
                         Classes="accent"
-                        IsEnabled="{Binding !IsSaving}"
                         FontSize="16"
                         Padding="20,10"
                         MinWidth="100"/>

@@ -141,9 +141,11 @@
                                    FontSize="16"/>
                         <ScrollViewer MaxHeight="300" HorizontalScrollBarVisibility="Auto">
                             <DataGrid ItemsSource="{Binding RecentVitals}"
+                                      SelectedItem="{Binding SelectedVital}"
                                       IsReadOnly="True"
                                       GridLinesVisibility="Horizontal"
-                                      HeadersVisibility="Column">
+                                      HeadersVisibility="Column"
+                                      SelectionMode="Single">
                                 <DataGrid.Styles>
                                     <!-- ヘッダースタイル：レイアウト最適化 -->
                                     <Style Selector="DataGridColumnHeader">
@@ -224,6 +226,39 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </ScrollViewer>
+                        
+                        <!-- 選択された行の操作ボタン -->
+                        <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="4"
+                                Padding="12"
+                                IsVisible="{Binding HasSelectedVital}">
+                            <StackPanel Orientation="Horizontal" 
+                                        Spacing="12" 
+                                        HorizontalAlignment="Center">
+                                <TextBlock Text="選択中のデータ:"
+                                           VerticalAlignment="Center"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding SelectedVital.MeasuredAt, StringFormat='{}{0:yyyy/MM/dd HH:mm}'}"
+                                           VerticalAlignment="Center"
+                                           FontFamily="{StaticResource MonospaceFont}"
+                                           Margin="0,0,16,0"/>
+                                <Button Content="編集"
+                                        Command="{Binding EditVitalCommand}"
+                                        Padding="16,8"
+                                        MinWidth="100"
+                                        Height="36"
+                                        FontSize="14"/>
+                                <Button Content="削除"
+                                        Command="{Binding DeleteVitalCommand}"
+                                        Padding="16,8"
+                                        MinWidth="100"
+                                        Height="36"
+                                        FontSize="14"
+                                        Background="#DC3545"
+                                        Foreground="White"/>
+                            </StackPanel>
+                        </Border>
                         
                         <TextBlock Text="バイタルサインが記録されていません"
                                    HorizontalAlignment="Center"

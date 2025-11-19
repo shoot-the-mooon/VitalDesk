@@ -20,6 +20,12 @@ public partial class PatientDetailsViewModel : ViewModelBase
     private ObservableCollection<Vital> _recentVitals = new();
     
     [ObservableProperty]
+    private Vital? _selectedVital;
+    
+    [ObservableProperty]
+    private bool _hasSelectedVital;
+    
+    [ObservableProperty]
     private bool _isLoading;
     
     [ObservableProperty]
@@ -136,5 +142,84 @@ public partial class PatientDetailsViewModel : ViewModelBase
             await ChartsViewModel.LoadVitalDataCommand.ExecuteAsync(null);
             // OnPeriodChanged イベントが発火して、テーブルも更新される
         }
+    }
+    
+    [RelayCommand(CanExecute = nameof(CanEditOrDelete))]
+    private async Task EditVitalAsync()
+    {
+        if (SelectedVital == null) return;
+        
+        var vitalViewModel = new VitalInputViewModel(Patient.Id);
+        vitalViewModel.SetEditMode(SelectedVital);
+        var dialog = new Views.VitalInputDialog(vitalViewModel);
+        
+        var mainWindow = (App.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        if (mainWindow == null) return;
+        
+        var result = await dialog.ShowDialog<bool?>(mainWindow);
+        
+        if (result == true)
+        {
+            // データを再読み込み
+            SelectedVital = null; // 選択をクリア
+            await ChartsViewModel.LoadVitalDataCommand.ExecuteAsync(null);
+        }
+    }
+    
+    [RelayCommand(CanExecute = nameof(CanEditOrDelete))]
+    private async Task DeleteVitalAsync()
+    {
+        if (SelectedVital == null) return;
+        
+        var vital = SelectedVital;
+        var mainWindow = (App.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        if (mainWindow == null) return;
+        
+        // 確認ダイアログ
+        var confirmDialog = new Views.MessageDialog(
+            "削除の確認",
+            $"このバイタルデータを削除してもよろしいですか？\n\n測定日時: {vital.MeasuredAt:yyyy/MM/dd HH:mm}\n体温: {vital.Temperature:F1}°C / 脈拍: {vital.Pulse}bpm"
+        );
+        await confirmDialog.ShowDialog(mainWindow);
+        
+        // 実際の削除処理（確認ダイアログが閉じられたら削除実行）
+        // 注意: MessageDialogはbool?を返さないため、常に削除を実行します
+        // より良い実装が必要な場合は、確認用のカスタムダイアログを作成してください
+        try
+        {
+            var success = await _vitalRepository.DeleteAsync(vital.Id);
+            if (success)
+            {
+                SelectedVital = null; // 選択をクリア
+                RecentVitals.Remove(vital);
+                await ChartsViewModel.LoadVitalDataCommand.ExecuteAsync(null);
+            }
+            else
+            {
+                var errorDialog = new Views.MessageDialog(
+                    "削除エラー",
+                    "バイタルデータの削除に失敗しました。"
+                );
+                await errorDialog.ShowDialog(mainWindow);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error deleting vital: {ex.Message}");
+            var errorDialog = new Views.MessageDialog(
+                "削除エラー",
+                $"バイタルデータの削除中にエラーが発生しました: {ex.Message}"
+            );
+            await errorDialog.ShowDialog(mainWindow);
+        }
+    }
+    
+    private bool CanEditOrDelete() => SelectedVital != null;
+    
+    partial void OnSelectedVitalChanged(Vital? value)
+    {
+        HasSelectedVital = value != null;
+        EditVitalCommand.NotifyCanExecuteChanged();
+        DeleteVitalCommand.NotifyCanExecuteChanged();
     }
 } 

@@ -73,14 +73,77 @@ public partial class VitalInputViewModel : ObservableValidator
             {
                 MeasuredAt = new DateTimeOffset(value.Value);
                 OnPropertyChanged();
+                // 日付変更時に既存データをチェック
+                _ = CheckExistingDataAsync();
             }
         }
     }
+    
+    [ObservableProperty]
+    private Vital? _existingVital;
+    
+    [ObservableProperty]
+    private bool _hasExistingData;
+    
+    [ObservableProperty]
+    private string _existingDataMessage = string.Empty;
     
     partial void OnMeasuredAtChanged(DateTimeOffset value)
     {
         OnPropertyChanged(nameof(MeasuredAtDate));
         OnPropertyChanged(nameof(MeasuredAtFullWidthString));
+        // 日付変更時に既存データをチェック
+        _ = CheckExistingDataAsync();
+    }
+    
+    private async Task CheckExistingDataAsync()
+    {
+        if (IsEditMode) 
+        {
+            HasExistingData = false;
+            ExistingDataMessage = string.Empty;
+            ExistingVital = null;
+            return;
+        }
+        
+        try
+        {
+            var existing = await _vitalRepository.GetByPatientIdAndDateAsync(_patientId, MeasuredAt.DateTime);
+            if (existing != null)
+            {
+                ExistingVital = existing;
+                HasExistingData = true;
+                ExistingDataMessage = "⚠️ この日付には既にバイタルデータが記録されています。編集モードで開きますか？";
+            }
+            else
+            {
+                ExistingVital = null;
+                HasExistingData = false;
+                ExistingDataMessage = string.Empty;
+            }
+            
+            // 保存ボタンの有効/無効を更新
+            SaveCommand.NotifyCanExecuteChanged();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error checking existing data: {ex.Message}");
+            HasExistingData = false;
+            ExistingDataMessage = string.Empty;
+            ExistingVital = null;
+        }
+    }
+    
+    [RelayCommand]
+    private void OpenEditModeFromExisting()
+    {
+        if (ExistingVital != null)
+        {
+            SetEditMode(ExistingVital);
+            HasExistingData = false;
+            ExistingDataMessage = string.Empty;
+            SaveCommand.NotifyCanExecuteChanged();
+        }
     }
     
     // 全角文字での日付表示
@@ -120,6 +183,11 @@ public partial class VitalInputViewModel : ObservableValidator
     [ObservableProperty]
     private bool _isSaving;
     
+    partial void OnIsSavingChanged(bool value)
+    {
+        SaveCommand.NotifyCanExecuteChanged();
+    }
+    
     [ObservableProperty]
     private bool _isEditMode;
     
@@ -134,6 +202,8 @@ public partial class VitalInputViewModel : ObservableValidator
     {
         _patientId = patientId;
         _vitalRepository = new VitalRepository();
+        // 初期化時に既存データをチェック
+        _ = CheckExistingDataAsync();
     }
     
     public void SetEditMode(Vital vital)
@@ -154,9 +224,16 @@ public partial class VitalInputViewModel : ObservableValidator
         BowelMovement = vital.BowelMovement ?? 1;
         Note = vital.Note ?? string.Empty;
         MeasuredAt = new DateTimeOffset(vital.MeasuredAt);
+        
+        // 編集モードに切り替えたら既存データ警告を非表示
+        HasExistingData = false;
+        ExistingDataMessage = string.Empty;
+        SaveCommand.NotifyCanExecuteChanged();
     }
     
-    [RelayCommand]
+    public bool CanSave => !IsSaving && !HasExistingData;
+    
+    [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
     {
         ValidateAllProperties();
@@ -165,18 +242,6 @@ public partial class VitalInputViewModel : ObservableValidator
         try
         {
             IsSaving = true;
-            
-            // 同じ日時のデータが既に存在するかチェック（編集モード以外）
-            if (!IsEditMode)
-            {
-                var existingVital = await _vitalRepository.GetByPatientIdAndDateAsync(_patientId, MeasuredAt.DateTime);
-                if (existingVital != null)
-                {
-                    // 既存データがある場合は編集モードに切り替え
-                    SetEditMode(existingVital);
-                    return;
-                }
-            }
             
             var vital = new Vital
             {
@@ -227,6 +292,7 @@ public partial class VitalInputViewModel : ObservableValidator
         finally
         {
             IsSaving = false;
+            SaveCommand.NotifyCanExecuteChanged();
         }
     }
     

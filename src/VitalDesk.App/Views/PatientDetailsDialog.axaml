@@ -139,12 +139,11 @@
                         <TextBlock Text="バイタルサイン一覧" 
                                    FontWeight="SemiBold"
                                    FontSize="16"/>
-                        <ScrollViewer MaxHeight="300">
+                        <ScrollViewer MaxHeight="300" HorizontalScrollBarVisibility="Auto">
                             <DataGrid ItemsSource="{Binding RecentVitals}"
                                       IsReadOnly="True"
                                       GridLinesVisibility="Horizontal"
-                                      HeadersVisibility="Column"
-                                      RowHeight="32">
+                                      HeadersVisibility="Column">
                                 <DataGrid.Styles>
                                     <!-- ヘッダースタイル：レイアウト最適化 -->
                                     <Style Selector="DataGridColumnHeader">
@@ -208,10 +207,20 @@
                                                         Binding="{Binding BowelMovement, StringFormat='{}{0}'}"
                                                         Width="80"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
-                                    <DataGridTextColumn Header="備考" 
-                                                        Binding="{Binding Note}"
-                                                        Width="*"
-                                                        FontFamily="Consolas, 'Courier New', monospace"/>
+                                    <DataGridTemplateColumn Header="備考" 
+                                                            Width="250"
+                                                            MinWidth="200">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Note}"
+                                                           TextWrapping="Wrap"
+                                                           VerticalAlignment="Top"
+                                                           HorizontalAlignment="Left"
+                                                           Padding="8,4"
+                                                           FontFamily="Consolas, 'Courier New', monospace"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </ScrollViewer>

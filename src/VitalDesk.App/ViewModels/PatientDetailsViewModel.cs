@@ -40,7 +40,9 @@ public partial class PatientDetailsViewModel : ViewModelBase
         ChartsViewModel.OnPeriodChanged += OnChartPeriodChanged;
         
         CalculateAge();
-        _ = LoadRecentVitalsAsync();
+        // LoadRecentVitalsAsync() を削除
+        // VitalChartsViewModel の初期化時に UpdateCharts() が呼ばれ、
+        // OnPeriodChanged イベントが発火するので、そこでデータが読み込まれる
     }
     
     private void OnChartPeriodChanged(DateTime startDate, DateTime endDate)
@@ -130,8 +132,9 @@ public partial class PatientDetailsViewModel : ViewModelBase
         
         if (result == true)
         {
-            await LoadRecentVitalsAsync();
+            // LoadRecentVitalsAsync() の代わりに、現在の期間のデータを再読み込み
             await ChartsViewModel.LoadVitalDataCommand.ExecuteAsync(null);
+            // OnPeriodChanged イベントが発火して、テーブルも更新される
         }
     }
 } 

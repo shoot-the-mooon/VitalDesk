@@ -171,9 +171,9 @@
                                     </Style>
                                 </DataGrid.Styles>
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="測定日時" 
-                                                        Binding="{Binding MeasuredAt, StringFormat='{}{0:MM/dd HH:mm}'}"
-                                                        Width="125"
+                                    <DataGridTextColumn Header="測定日" 
+                                                        Binding="{Binding MeasuredAt, StringFormat='{}{0:MM/dd }'}"
+                                                        Width="100"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="体温" 
                                                         Binding="{Binding Temperature, StringFormat='{}{0:F1}°C'}"
@@ -239,19 +239,19 @@
                                            VerticalAlignment="Center"
                                            FontWeight="SemiBold"
                                            Margin="0,0,8,0"/>
-                                <TextBlock Text="{Binding SelectedVital.MeasuredAt, StringFormat='{}{0:yyyy/MM/dd HH:mm}'}"
+                                <TextBlock Text="{Binding SelectedVital.MeasuredAt, StringFormat='{}{0:yyyy/MM/dd }'}"
                                            VerticalAlignment="Center"
                                            FontFamily="{StaticResource MonospaceFont}"
                                            Margin="0,0,16,0"/>
                                 <Button Content="編集"
                                         Command="{Binding EditVitalCommand}"
-                                        Padding="16,8"
+                                        Padding="0,0"
                                         MinWidth="100"
                                         Height="36"
                                         FontSize="14"/>
                                 <Button Content="削除"
                                         Command="{Binding DeleteVitalCommand}"
-                                        Padding="16,8"
+                                        Padding="0,0"
                                         MinWidth="100"
                                         Height="36"
                                         FontSize="14"

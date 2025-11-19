@@ -77,7 +77,7 @@
               <DataGrid.Columns>
                 <DataGridTextColumn Header="患者ID" 
                                     Binding="{Binding Number}" 
-                                    Width="80"/>
+                                    Width="120"/>
                 
                 <DataGridTextColumn Header="患者名" 
                                     Binding="{Binding Name}" 
@@ -85,7 +85,7 @@
                 
                 <DataGridTextColumn Header="フリガナ" 
                                     Binding="{Binding Furigana}" 
-                                    Width="120"/>
+                                    Width="180"/>
                 
                 <DataGridTextColumn Header="生年月日" 
                                     Binding="{Binding BirthDate, StringFormat=yyyy/MM/dd}" 

@@ -64,7 +64,6 @@ public partial class VitalChartsViewModel : ViewModelBase
         _vitalRepository = new VitalRepository();
         
         InitializeAxes();
-        _ = LoadVitalDataAsync();
     }
     
     private void InitializeAxes()

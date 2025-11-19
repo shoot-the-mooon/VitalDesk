@@ -159,7 +159,7 @@
                                     <Style Selector="DataGridCell">
                                         <Setter Property="VerticalContentAlignment" Value="Center"/>
                                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                        <Setter Property="Padding" Value="8,6"/>
+                                        <Setter Property="Padding" Value="0,0"/>
                                     </Style>
                                     <!-- データ部分の等幅フォント設定 -->
                                     <Style Selector="DataGridCell TextBlock">
@@ -173,11 +173,11 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="測定日" 
                                                         Binding="{Binding MeasuredAt, StringFormat='{}{0:MM/dd }'}"
-                                                        Width="100"
+                                                        Width="90"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="体温" 
                                                         Binding="{Binding Temperature, StringFormat='{}{0:F1}°C'}"
-                                                        Width="85"
+                                                        Width="90"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="脈拍" 
                                                         Binding="{Binding Pulse, StringFormat='{}{0}bpm'}"
@@ -195,7 +195,7 @@
                                     </DataGridTextColumn>
                                     <DataGridTextColumn Header="体重" 
                                                         Binding="{Binding Weight, StringFormat='{}{0:F1}kg'}"
-                                                        Width="85"
+                                                        Width="90"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="食事" 
                                                         Binding="{Binding MealSummary}"

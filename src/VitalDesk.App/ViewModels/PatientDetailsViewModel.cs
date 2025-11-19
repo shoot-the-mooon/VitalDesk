@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Avalonia.Threading;
 using VitalDesk.Core.Models;
 using VitalDesk.Core.Repositories;
 
@@ -46,9 +47,21 @@ public partial class PatientDetailsViewModel : ViewModelBase
         ChartsViewModel.OnPeriodChanged += OnChartPeriodChanged;
         
         CalculateAge();
-        // LoadRecentVitalsAsync() を削除
-        // VitalChartsViewModel の初期化時に UpdateCharts() が呼ばれ、
-        // OnPeriodChanged イベントが発火するので、そこでデータが読み込まれる
+        
+        // イベント購読後にデータ読み込みを開始することで、初回表示でも確実にテーブルが更新される
+        _ = InitializeDataAsync();
+    }
+    
+    private async Task InitializeDataAsync()
+    {
+        try
+        {
+            await ChartsViewModel.LoadVitalDataCommand.ExecuteAsync(null);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error initializing vital data: {ex.Message}");
+        }
     }
     
     private void OnChartPeriodChanged(DateTime startDate, DateTime endDate)
@@ -109,11 +122,14 @@ public partial class PatientDetailsViewModel : ViewModelBase
                 .Where(v => v.MeasuredAt >= startDate && v.MeasuredAt < endDate)
                 .OrderByDescending(v => v.MeasuredAt);
             
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
             RecentVitals.Clear();
             foreach (var vital in filteredVitals)
             {
                 RecentVitals.Add(vital);
             }
+            });
         }
         catch (Exception ex)
         {

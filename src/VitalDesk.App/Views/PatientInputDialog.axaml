@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
         x:Class="VitalDesk.App.Views.PatientInputDialog"
         x:DataType="vm:PatientInputViewModel"
-        Title="新規患者追加"
+        Title="患者情報"
         Width="450" Height="550"
         MinWidth="400" MinHeight="500"
         WindowStartupLocation="CenterOwner"
@@ -50,15 +50,61 @@
             <!-- Birth Date -->
             <StackPanel Spacing="8">
                 <TextBlock Text="生年月日" FontWeight="SemiBold"/>
-                <DatePicker SelectedDate="{Binding BirthDate}"
-                            HorizontalAlignment="Stretch"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox ItemsSource="{Binding BirthYears}"
+                              SelectedItem="{Binding BirthYear}"
+                              Width="100"
+                              PlaceholderText="年"/>
+                    <TextBlock Text="年" 
+                               VerticalAlignment="Center"
+                               FontSize="14"/>
+                    
+                    <ComboBox ItemsSource="{Binding BirthMonths}"
+                              SelectedItem="{Binding BirthMonth}"
+                              Width="80"
+                              PlaceholderText="月"/>
+                    <TextBlock Text="月" 
+                               VerticalAlignment="Center"
+                               FontSize="14"/>
+                    
+                    <ComboBox ItemsSource="{Binding BirthDays}"
+                              SelectedItem="{Binding BirthDay}"
+                              Width="80"
+                              PlaceholderText="日"/>
+                    <TextBlock Text="日" 
+                               VerticalAlignment="Center"
+                               FontSize="14"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- Admission -->
             <StackPanel Spacing="8">
                 <TextBlock Text="入院日" FontWeight="SemiBold"/>
-                <DatePicker SelectedDate="{Binding Admission}"
-                            HorizontalAlignment="Stretch"/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox ItemsSource="{Binding AdmissionYears}"
+                              SelectedItem="{Binding AdmissionYear}"
+                              Width="100"
+                              PlaceholderText="年"/>
+                    <TextBlock Text="年" 
+                               VerticalAlignment="Center"
+                               FontSize="14"/>
+                    
+                    <ComboBox ItemsSource="{Binding AdmissionMonths}"
+                              SelectedItem="{Binding AdmissionMonth}"
+                              Width="80"
+                              PlaceholderText="月"/>
+                    <TextBlock Text="月" 
+                               VerticalAlignment="Center"
+                               FontSize="14"/>
+                    
+                    <ComboBox ItemsSource="{Binding AdmissionDays}"
+                              SelectedItem="{Binding AdmissionDay}"
+                              Width="80"
+                              PlaceholderText="日"/>
+                    <TextBlock Text="日" 
+                               VerticalAlignment="Center"
+                               FontSize="14"/>
+                </StackPanel>
             </StackPanel>
 
             <!-- Validation Errors (保存時のみ表示) -->

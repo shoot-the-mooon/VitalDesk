@@ -456,11 +456,19 @@ public partial class MainViewModel : ViewModelBase
             var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (mainWindow == null) return;
             
+            // 転棟患者かどうかで表示テキストを変更
+            bool isTransferred = patient.Status == PatientStatus.Transferred;
+            string actionText = isTransferred ? "再入棟" : "再入院";
+            string dialogTitle = isTransferred ? "再入棟の確認" : "再入院の確認";
+            string dialogMessage = isTransferred 
+                ? $"患者「{patient.Name}」（患者ID: {patient.Number}）を再入棟させますか？"
+                : $"患者「{patient.Name}」（患者ID: {patient.Number}）を再入院させますか？";
+            
             // 確認ダイアログを表示
             var dialog = new Views.ConfirmationDialog(
-                "再入院の確認",
-                $"患者「{patient.Name}」（患者ID: {patient.Number}）を再入院させますか？",
-                "再入院",
+                dialogTitle,
+                dialogMessage,
+                actionText,
                 "キャンセル"
             );
             
@@ -481,17 +489,25 @@ public partial class MainViewModel : ViewModelBase
                     // 入院患者タブに切り替え
                     SelectedTabIndex = 0;
                     
+                    string successTitle = isTransferred ? "再入棟処理完了" : "再入院処理完了";
+                    string successMessage = isTransferred
+                        ? $"患者「{patient.Name}」の再入棟処理が完了しました。"
+                        : $"患者「{patient.Name}」の再入院処理が完了しました。";
+                    
                     var successDialog = new Views.MessageDialog(
-                        "再入院処理完了",
-                        $"患者「{patient.Name}」の再入院処理が完了しました。"
+                        successTitle,
+                        successMessage
                     );
                     await successDialog.ShowDialog(mainWindow);
                 }
                 else
                 {
+                    string errorTitle = isTransferred ? "再入棟処理エラー" : "再入院処理エラー";
+                    string errorMessage = isTransferred ? "再入棟処理に失敗しました。" : "再入院処理に失敗しました。";
+                    
                     var errorDialog = new Views.MessageDialog(
-                        "再入院処理エラー",
-                        "再入院処理に失敗しました。"
+                        errorTitle,
+                        errorMessage
                     );
                     await errorDialog.ShowDialog(mainWindow);
                 }
@@ -502,9 +518,16 @@ public partial class MainViewModel : ViewModelBase
             var mainWindow = (App.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
             if (mainWindow != null)
             {
+                // 患者ステータスを確認してエラーメッセージを変更
+                bool isTransferred = patient?.Status == PatientStatus.Transferred;
+                string errorTitle = isTransferred ? "再入棟処理エラー" : "再入院処理エラー";
+                string errorMessage = isTransferred
+                    ? $"再入棟処理中にエラーが発生しました: {ex.Message}"
+                    : $"再入院処理中にエラーが発生しました: {ex.Message}";
+                
                 var errorDialog = new Views.MessageDialog(
-                    "再入院処理エラー",
-                    $"再入院処理中にエラーが発生しました: {ex.Message}"
+                    errorTitle,
+                    errorMessage
                 );
                 await errorDialog.ShowDialog(mainWindow);
             }

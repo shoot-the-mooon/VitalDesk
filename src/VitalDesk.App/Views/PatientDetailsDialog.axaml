@@ -74,10 +74,10 @@
             <StackPanel Spacing="16">
                 <!-- 操作ボタン -->
                 <StackPanel Orientation="Horizontal" Spacing="12">
-                    <Button Content="記録する" 
+                    <Button Content="バイタル入力" 
                             Command="{Binding AddVitalCommand}"
                             Classes="accent"
-                            Width="100"
+                            Width="120"
                             Background="Orange"/>
                     
                     <!-- 週間ナビゲーション -->

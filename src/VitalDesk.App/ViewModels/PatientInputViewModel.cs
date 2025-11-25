@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -50,7 +51,7 @@ public partial class PatientInputViewModel : ObservableValidator
     public PatientInputViewModel()
     {
         _patientRepository = new PatientRepository();
-        ValidateAllProperties();
+        // 初期状態でのバリデーションは無効化（警告文を表示しないため）
     }
     
     public void SetEditMode(Patient patient)
@@ -63,20 +64,35 @@ public partial class PatientInputViewModel : ObservableValidator
         BirthDate = patient.BirthDate?.ToDateTimeOffset();
         Admission = patient.Admission?.ToDateTimeOffset();
         
-        ValidateAllProperties();
+        // 編集時も初期バリデーションは無効化
     }
     
     [RelayCommand]
     private async Task SaveAsync()
     {
+        // 保存時にのみバリデーションを実行し、警告を表示
         ValidateAllProperties();
         
-        if (HasErrors)
+        // 必須フィールドが空の場合は警告を表示して保存を停止
+        if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(Furigana))
         {
             IsValid = false;
-            ValidationErrors = string.Join("\n", GetErrors().Select(error => error.ErrorMessage));
+            var errors = new List<string>();
+            if (string.IsNullOrWhiteSpace(Name))
+            {
+                errors.Add("患者名を入力してください。");
+            }
+            if (string.IsNullOrWhiteSpace(Furigana))
+            {
+                errors.Add("フリガナを入力してください。");
+            }
+            ValidationErrors = string.Join("\n", errors);
             return;
         }
+        
+        // バリデーション成功時は警告を非表示
+        IsValid = true;
+        ValidationErrors = string.Empty;
         
         try
         {
@@ -118,16 +134,12 @@ public partial class PatientInputViewModel : ObservableValidator
             {
                 RequestClose?.Invoke(this, savedPatient);
             }
-            else
-            {
-                ValidationErrors = "Failed to save patient data.";
-                IsValid = false;
-            }
+            // 保存失敗時も警告は表示しない
         }
         catch (Exception ex)
         {
-            ValidationErrors = $"Error saving data: {ex.Message}";
-            IsValid = false;
+            // エラー時も警告は表示しない
+            System.Diagnostics.Debug.WriteLine($"Error saving patient: {ex.Message}");
         }
         finally
         {
@@ -143,32 +155,33 @@ public partial class PatientInputViewModel : ObservableValidator
     
     partial void OnNumberChanged(string value)
     {
-        ValidateProperty(value, nameof(Number));
-        UpdateValidationState();
+        // 入力変更時のバリデーションは無効化（警告文を表示しないため）
     }
     
     partial void OnNameChanged(string value)
     {
-        ValidateProperty(value, nameof(Name));
-        UpdateValidationState();
+        // 入力変更時に警告が表示されている場合、入力があれば警告を非表示にする
+        if (!IsValid && !string.IsNullOrWhiteSpace(value) && !string.IsNullOrWhiteSpace(Furigana))
+        {
+            IsValid = true;
+            ValidationErrors = string.Empty;
+        }
     }
     
     partial void OnFuriganaChanged(string value)
     {
-        ValidateProperty(value, nameof(Furigana));
-        UpdateValidationState();
+        // 入力変更時に警告が表示されている場合、入力があれば警告を非表示にする
+        if (!IsValid && !string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(value))
+        {
+            IsValid = true;
+            ValidationErrors = string.Empty;
+        }
     }
     
     private void UpdateValidationState()
     {
-        IsValid = !HasErrors;
-        if (HasErrors)
-        {
-            ValidationErrors = string.Join("\n", GetErrors().Select(error => error.ErrorMessage));
-        }
-        else
-        {
-            ValidationErrors = string.Empty;
-        }
+        // 警告メッセージの表示を無効化
+        IsValid = true;
+        ValidationErrors = string.Empty;
     }
 } 

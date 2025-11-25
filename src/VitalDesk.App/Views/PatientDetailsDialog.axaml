@@ -176,25 +176,25 @@
                                                         Width="90"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="体温" 
-                                                        Binding="{Binding Temperature, StringFormat='{}{0:F1}°C'}"
+                                                        Binding="{Binding Temperature, StringFormat='{}{0:F1} °C'}"
                                                         Width="90"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="脈拍" 
-                                                        Binding="{Binding Pulse, StringFormat='{}{0}bpm'}"
+                                                        Binding="{Binding Pulse, StringFormat='{}{0} bpm'}"
                                                         Width="85"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="血圧" 
                                                         Width="125"
                                                         FontFamily="Consolas, 'Courier New', monospace">
                                         <DataGridTextColumn.Binding>
-                                            <MultiBinding StringFormat="{}{0}/{1}mmHg">
+                                            <MultiBinding StringFormat="{}{0}/{1} mmHg">
                                                 <Binding Path="Systolic"/>
                                                 <Binding Path="Diastolic"/>
                                             </MultiBinding>
                                         </DataGridTextColumn.Binding>
                                     </DataGridTextColumn>
                                     <DataGridTextColumn Header="体重" 
-                                                        Binding="{Binding Weight, StringFormat='{}{0:F1}kg'}"
+                                                        Binding="{Binding Weight, StringFormat='{}{0:F1} kg'}"
                                                         Width="90"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="食事" 
@@ -202,11 +202,11 @@
                                                         Width="80"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="睡眠" 
-                                                        Binding="{Binding Sleep, StringFormat='{}{0}h'}"
+                                                        Binding="{Binding Sleep, StringFormat='{}{0} h'}"
                                                         Width="80"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTextColumn Header="便通" 
-                                                        Binding="{Binding BowelMovement, StringFormat='{}{0}'}"
+                                                        Binding="{Binding BowelMovement, StringFormat='{}{0} 回'}"
                                                         Width="80"
                                                         FontFamily="Consolas, 'Courier New', monospace"/>
                                     <DataGridTemplateColumn Header="備考" 

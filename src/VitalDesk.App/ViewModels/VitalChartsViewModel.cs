@@ -195,7 +195,7 @@ public partial class VitalChartsViewModel : ViewModelBase
         
         // 期間の開始日と終了日を取得
         var now = DateTime.Now;
-        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday).Date;
+        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Sunday).Date;
         var targetStartOfWeek = startOfWeek.AddDays(-7 * CurrentWeekOffset);
         var targetEndOfWeek = targetStartOfWeek.AddDays(7);
         
@@ -218,7 +218,7 @@ public partial class VitalChartsViewModel : ViewModelBase
     private List<Vital> GetCurrentWeekVitals()
     {
         var now = DateTime.Now;
-        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday).Date; // 月曜日を週の開始とする
+        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Sunday).Date; // 日曜日を週の開始とする
         
         // オフセットを適用
         var targetStartOfWeek = startOfWeek.AddDays(-7 * CurrentWeekOffset);
@@ -233,7 +233,7 @@ public partial class VitalChartsViewModel : ViewModelBase
     private void UpdatePeriodText()
     {
         var now = DateTime.Now;
-        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday).Date;
+        var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Sunday).Date;
         var targetStartOfWeek = startOfWeek.AddDays(-7 * CurrentWeekOffset);
         var targetEndOfWeek = targetStartOfWeek.AddDays(6);
         

@@ -57,6 +57,24 @@ public partial class VitalChartsViewModel : ViewModelBase
     
     [ObservableProperty]
     private bool _canGoToNext = false;
+    
+    // 日付検索用のプロパティ
+    [ObservableProperty]
+    private int? _searchYear;
+    
+    [ObservableProperty]
+    private int? _searchMonth;
+    
+    [ObservableProperty]
+    private int? _searchDay;
+    
+    [ObservableProperty]
+    private string _searchErrorMessage = string.Empty;
+    
+    // 選択肢のリスト（PatientInputViewModelと同様）
+    public List<int> SearchYears { get; } = Enumerable.Range(1900, DateTime.Now.Year - 1900 + 2).Reverse().ToList();
+    public List<int> SearchMonths { get; } = Enumerable.Range(1, 12).ToList();
+    public List<int> SearchDays { get; } = Enumerable.Range(1, 31).ToList();
 
     public VitalChartsViewModel(Patient patient)
     {
@@ -158,6 +176,59 @@ public partial class VitalChartsViewModel : ViewModelBase
         CurrentWeekOffset--;
         UpdateCharts();
         UpdateNavigationButtons();
+    }
+    
+    [RelayCommand]
+    private void SearchByDate()
+    {
+        // エラーメッセージをクリア
+        SearchErrorMessage = string.Empty;
+        
+        // 年・月・日が全て選択されているかチェック
+        if (!SearchYear.HasValue || !SearchMonth.HasValue || !SearchDay.HasValue)
+        {
+            SearchErrorMessage = "年・月・日を全て選択してください。";
+            return;
+        }
+        
+        try
+        {
+            // 日付の有効性チェック（うるう年や月末日を考慮）
+            int daysInMonth = DateTime.DaysInMonth(SearchYear.Value, SearchMonth.Value);
+            if (SearchDay.Value < 1 || SearchDay.Value > daysInMonth)
+            {
+                SearchErrorMessage = $"{SearchYear}年{SearchMonth}月は{daysInMonth}日までです。";
+                return;
+            }
+            
+            // 有効な日付を作成
+            var searchDate = new DateTime(SearchYear.Value, SearchMonth.Value, SearchDay.Value);
+            
+            // その日が含まれる週の開始日（日曜日）を計算
+            var dayOfWeek = (int)searchDate.DayOfWeek;
+            var startOfWeek = searchDate.AddDays(-dayOfWeek).Date;
+            
+            // 現在の週の開始日を取得
+            var now = DateTime.Now;
+            var currentStartOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Sunday).Date;
+            
+            // オフセットを計算
+            var daysDiff = (currentStartOfWeek - startOfWeek).Days;
+            CurrentWeekOffset = daysDiff / 7;
+            
+            // チャートを更新（データがない場合は既存のNoDataMessageが表示される）
+            UpdateCharts();
+            UpdateNavigationButtons();
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // 無効な日付の場合
+            SearchErrorMessage = "存在しない日付です。正しい日付を選択してください。";
+        }
+        catch (Exception ex)
+        {
+            SearchErrorMessage = $"エラーが発生しました: {ex.Message}";
+        }
     }
     
     [RelayCommand]
